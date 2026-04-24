@@ -1,0 +1,391 @@
+/* ============================================================
+   DIVASA FRESH — SHARED MOBILE CSS
+   Import this in any page that needs mobile responsiveness.
+   Desktop: untouched. Mobile (≤768px): full redesign.
+   ============================================================ */
+
+/* ── Dashboard layout (sidebar + main) ── */
+@media (max-width: 768px) {
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ============================================================
+     DASHBOARD PAGES (MyOrders, Favourites, LoyaltyCards, etc.)
+     ============================================================ */
+
+  /* Override sidebar — becomes top bar on mobile */
+  .dashboard-container {
+    flex-direction: column !important;
+  }
+
+  .dashboard-sidebar {
+    width: 100% !important;
+    height: auto !important;
+    position: relative !important;
+    top: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 14px 0 0 0 !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+
+  .dashboard-sidebar .sidebar-phone {
+    padding: 0 16px 10px 16px !important;
+    font-size: 14px !important;
+  }
+
+  .dashboard-sidebar nav {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    padding: 0 8px 10px 8px !important;
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .dashboard-sidebar nav::-webkit-scrollbar { display: none; }
+
+  .dashboard-sidebar nav > div {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    border-radius: 20px !important;
+    border-right: none !important;
+    flex-shrink: 0 !important;
+    background: #f9fafb !important;
+  }
+
+  .dashboard-sidebar nav > div[style*="border-right: 4px solid"] {
+    background: #f0fdf4 !important;
+    color: #16a34a !important;
+    border-right: none !important;
+    font-weight: 700 !important;
+  }
+
+  .dashboard-main {
+    padding: 16px !important;
+    width: 100% !important;
+  }
+
+  /* ============================================================
+     CART PAGE
+     ============================================================ */
+  .cart-layout {
+    flex-direction: column !important;
+    padding: 10px 12px !important;
+  }
+
+  .cart-left {
+    flex: none !important;
+    width: 100% !important;
+    position: relative !important;
+    height: auto !important;
+  }
+
+  .cart-right {
+    flex: none !important;
+    width: 100% !important;
+  }
+
+  /* ============================================================
+     DARK THEME PAGES (About, Contact, Mission, etc.)
+     ============================================================ */
+
+  /* Reduce hero padding on mobile */
+  .dark-hero {
+    padding: 100px 5% 60px !important;
+  }
+
+  /* Stacked grid on mobile */
+  .dark-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  /* Smaller headings */
+  .dark-hero h1 {
+    font-size: clamp(28px, 8vw, 48px) !important;
+    letter-spacing: -1px !important;
+  }
+
+  /* Floating navbar → full width pill on mobile */
+  .about-navbar {
+    top: 10px !important;
+    width: 95% !important;
+    padding: 10px 16px !important;
+    border-radius: 50px !important;
+  }
+
+  .about-navbar-links {
+    gap: 14px !important;
+  }
+
+  .about-navbar a {
+    font-size: 12px !important;
+  }
+
+  .about-navbar-cta {
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+  }
+
+  /* ============================================================
+     TERMS / PRIVACY — sidebar TOC hidden, content full width
+     ============================================================ */
+  .legal-layout {
+    flex-direction: column !important;
+  }
+
+  .legal-sidebar {
+    display: none !important;
+  }
+
+  .legal-content {
+    padding: 20px 16px !important;
+    margin-left: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .legal-hero {
+    padding: 80px 5% 40px !important;
+  }
+
+  /* ============================================================
+     ORDER SUCCESS
+     ============================================================ */
+  .order-success-wrap {
+    padding: 60px 20px !important;
+  }
+
+  /* ============================================================
+     GENERAL MOBILE UTILITIES
+     ============================================================ */
+  .hide-mobile { display: none !important; }
+  .show-mobile { display: block !important; }
+
+  .mobile-full { width: 100% !important; }
+  .mobile-stack { flex-direction: column !important; }
+  .mobile-pad { padding: 16px !important; }
+
+  /* Details grid in OrderDetails → stack */
+  .details-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Inquiry form in Contact → full width */
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+
+  .contact-map {
+    min-height: 300px !important;
+  }
+
+  /* Bento grid (Mission) → single column */
+  .bento-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .bento-large, .bento-small {
+    grid-column: span 1 !important;
+  }
+
+  /* Service cards grid */
+  .service-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Priority grid */
+  .priority-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stat node row in Mission → wrap */
+  .stakeholder-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+  }
+
+  .flow-line { display: none !important; }
+
+  /* Vision 2030 hub grid */
+  .hub-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Category bar in Home — ensure touch scroll */
+  .category-bar {
+    gap: 8px !important;
+    padding: 8px 4px !important;
+  }
+
+  /* Leader cards → single column */
+  .leaders-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Partner section grid */
+  .partner-grid {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+
+  /* Summary/human section big text */
+  .human-chain {
+    gap: 12px !important;
+  }
+
+  .human-chain svg {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  /* Inquiry sub-grid */
+  .inquiry-sub-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* Expansion / regional block */
+  .regional-block {
+    flex-direction: column !important;
+    padding: 40px 24px !important;
+    gap: 30px !important;
+    border-radius: 24px !important;
+  }
+
+  .regional-stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* ============================================================
+     FOOTER MOBILE REDESIGN
+     ============================================================ */
+  footer {
+    padding: 40px 16px 20px !important;
+    margin-top: 40px !important;
+  }
+
+  footer > div {
+    max-width: 100% !important;
+  }
+
+  /* Stack all footer columns vertically */
+  footer [style*="display: grid"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 30px !important;
+  }
+
+  footer h4 {
+    font-size: 11px !important;
+    margin-bottom: 16px !important;
+  }
+
+  footer p {
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+  }
+
+  footer a {
+    display: block !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Footer socials */
+  .socials-row {
+    flex-wrap: wrap !important;
+    gap: 14px !important;
+  }
+
+  .footer-contact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* Footer bottom bar - stack on small screens */
+  footer > div > div:last-child {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* DeliveryAreas map */
+  .delivery-map {
+    height: 280px !important;
+  }
+
+  /* Reduce Vision2030 massive title */
+  .vision-hero h1 {
+    font-size: clamp(3rem, 15vw, 6rem) !important;
+    letter-spacing: -2px !important;
+  }
+
+  .vision-section {
+    padding: 60px 5% !important;
+  }
+
+  .vision-grid-split {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+
+  .vision-grid2 {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+
+  .vision-summary-card {
+    padding: 30px 20px !important;
+    border-radius: 24px !important;
+  }
+
+  .vision-summary-card p {
+    font-size: 18px !important;
+  }
+
+  .vision-hub-wrapper {
+    padding: 24px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .vision-objective-bar {
+    font-size: 14px !important;
+    gap: 12px !important;
+  }
+
+  .vision-footer-section {
+    padding: 60px 5% !important;
+  }
+
+  /* OrderDetails step tracker on mobile */
+  .order-step-tracker {
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+  }
+}
+
+/* ── Very small ≤ 360px ── */
+@media (max-width: 360px) {
+  .dashboard-sidebar nav > div {
+    font-size: 11px !important;
+    padding: 7px 10px !important;
+  }
+
+  .vision-hero h1 {
+    font-size: 2.8rem !important;
+  }
+
+  footer h4 {
+    font-size: 10px !important;
+  }
+
+  footer p {
+    font-size: 11px !important;
+  }
+}
