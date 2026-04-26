@@ -9,10 +9,14 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
   const [otpDigits, setOtpDigits] = useState(() => Array(OTP_LENGTH).fill(""));
   const [step, setStep] = useState("phone");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [name, setName] = useState("");
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const otpInputRefs = useRef([]);
+  const sendOtpInFlightRef = useRef(false);
+  const verifyOtpInFlightRef = useRef(false);
+  const lastSendOtpAtRef = useRef(0);
 
   const normalizedPhone = phone.replace(/\D/g, "").slice(-10);
   const otp = otpDigits.join("");
@@ -23,6 +27,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
     setOtpDigits(Array(OTP_LENGTH).fill(""));
     setName("");
     setError("");
+    setInfo("");
   }, []);
 
   useEffect(() => {
@@ -60,25 +65,52 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
 
   const closeModal = () => {
     setShow(false);
+    sendOtpInFlightRef.current = false;
+    verifyOtpInFlightRef.current = false;
     onClose && onClose();
   };
 
   const handleSendOtp = async () => {
-    if (isSendingOtp) return;
+    const now = Date.now();
+    if (now - lastSendOtpAtRef.current < 1200) return;
+    lastSendOtpAtRef.current = now;
+
+    if (isSendingOtp || sendOtpInFlightRef.current) return;
+    sendOtpInFlightRef.current = true;
 
     if (normalizedPhone.length !== 10) {
       setError("Enter valid 10 digit phone number");
+      sendOtpInFlightRef.current = false;
       return;
     }
 
     setError("");
+    setInfo("");
     setTimer(30);
     setIsSendingOtp(true);
 
     try {
-      await api.post("/customer/send-otp", { phone: normalizedPhone, name });
+      const res = await api.post("/customer/send-otp", { phone: normalizedPhone, name });
+      const serverOtp = String(res?.data?.otp || "").trim();
+      const serverMessage = String(res?.data?.message || "").trim();
+      const hasDevOtp = import.meta.env.DEV && /^\d{6}$/.test(serverOtp);
+      const hasDeliveryIssue =
+        /pending|could not be delivered|failed|not sent|delivery/i.test(serverMessage) &&
+        !/sent successfully/i.test(serverMessage);
+
+      if (hasDeliveryIssue && !hasDevOtp) {
+        setError(serverMessage || "OTP delivery failed. Please try again.");
+        return;
+      }
+
       setStep("otp");
-      setOtpDigits(Array(OTP_LENGTH).fill(""));
+      if (hasDevOtp) {
+        setOtpDigits(serverOtp.split(""));
+        setInfo(serverMessage ? `${serverMessage}. Dev OTP: ${serverOtp}` : `Dev OTP: ${serverOtp}`);
+      } else {
+        setOtpDigits(Array(OTP_LENGTH).fill(""));
+        if (serverMessage) setInfo(serverMessage);
+      }
     } catch (err) {
       setError(
         err?.response?.data?.message ||
@@ -86,23 +118,28 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
       );
     } finally {
       setIsSendingOtp(false);
+      sendOtpInFlightRef.current = false;
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (isVerifyingOtp) return;
+    if (isVerifyingOtp || verifyOtpInFlightRef.current) return;
+    verifyOtpInFlightRef.current = true;
 
     if (!name || name.trim() === "") {
       setError("Name is required");
+      verifyOtpInFlightRef.current = false;
       return;
     }
 
     if (!otp || otp.trim() === "") {
       setError("Enter OTP");
+      verifyOtpInFlightRef.current = false;
       return;
     }
 
     setError("");
+    setInfo("");
     setIsVerifyingOtp(true);
 
     try {
@@ -123,6 +160,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
       setError(err?.response?.data?.message || "Invalid OTP");
     } finally {
       setIsVerifyingOtp(false);
+      verifyOtpInFlightRef.current = false;
     }
   };
 
@@ -253,6 +291,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
                 onChange={(e) => {
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
                   if (error) setError("");
+                  if (info) setInfo("");
                 }}
                 placeholder="Enter phone number"
                 inputMode="numeric"
@@ -306,6 +345,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
                   onChange={(e) => {
                     handleOtpInputChange(index, e.target.value);
                     if (error) setError("");
+                    if (info) setInfo("");
                   }}
                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
                   inputMode="numeric"
@@ -330,6 +370,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
               onChange={(e) => {
                 setName(e.target.value);
                 if (error) setError("");
+                if (info) setInfo("");
               }}
               placeholder="Enter your name"
               style={{
@@ -376,6 +417,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
           </>
         )}
 
+        {info && <p style={{ color: "#166534", marginTop: 10, fontSize: 13 }}>{info}</p>}
         {error && <p style={{ color: "red", marginTop: 10, fontSize: 13 }}>{error}</p>}
       </div>
     </div>

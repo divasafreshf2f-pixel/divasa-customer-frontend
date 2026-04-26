@@ -41,6 +41,7 @@ export default function Home() {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("divasa_user")) || null
   );
+  const navigate = useNavigate();
 
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("divasa_user"));
@@ -63,7 +64,8 @@ export default function Home() {
   useEffect(() => {
     if (!user) {
       setShowAddressPicker(false);
-      window.dispatchEvent(new Event("openLoginModal"));
+      setShowMapModal(false);
+      setShowLoginModal(true);
       return;
     }
 
@@ -73,19 +75,33 @@ export default function Home() {
         const sorted = [...res.data].sort((a, b) => b.isDefault - a.isDefault);
         setSavedAddresses(sorted);
 
+        if (sorted.length === 0) {
+          setShowAddressPicker(false);
+          navigate("/saved-addresses?action=add");
+          return;
+        }
+
         const pickerShown = sessionStorage.getItem("divasa_address_picker_seen");
         if (!pickerShown) {
           sessionStorage.setItem("divasa_address_picker_seen", "true");
           setShowAddressPicker(true);
+          return;
         }
+
+        setShowAddressPicker(false);
       } catch (err) {
         setSavedAddresses([]);
-        setShowAddressPicker(true);
+        if (err?.response?.status === 404) {
+          setShowAddressPicker(false);
+          navigate("/saved-addresses?action=add");
+          return;
+        }
+        setShowAddressPicker(false);
       }
     };
 
     fetchAddresses();
-  }, [user]);
+  }, [user, navigate]);
 
   const [favs, setFavs] = useState([]);
   const [message, setMessage] = useState("");
@@ -104,8 +120,6 @@ export default function Home() {
   };
 
   const [showAccountMenu, setShowAccountMenu] = useState(false);
-
-  const navigate = useNavigate();
 
   const cartTotal = cart.reduce((total, item) => {
     return total + item.price * item.quantity;
@@ -172,15 +186,10 @@ export default function Home() {
 
   // ✅ Check for saved location on mount
   useEffect(() => {
-    if (sessionStorage.getItem("locationModalChecked")) return;
-    sessionStorage.setItem("locationModalChecked", "true");
     const lat = localStorage.getItem("divasa_location_lat");
     const lng = localStorage.getItem("divasa_location_lng");
     const savedName = localStorage.getItem("divasa_location_name");
-    if (!lat || !lng) {
-      setShowMapModal(true);
-      return;
-    }
+    if (!lat || !lng) return;
     const distance = getDistanceInKm(
       WAREHOUSE_LOCATION.lat,
       WAREHOUSE_LOCATION.lng,
@@ -991,7 +1000,7 @@ export default function Home() {
       )}
 
       {/* LOCATION MODAL */}
-      {showMapModal === true && (
+      {showMapModal === true && user && (
         <div
           style={{
             position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
@@ -1039,7 +1048,6 @@ export default function Home() {
           const updatedUser = JSON.parse(localStorage.getItem("divasa_user"));
           setUser(updatedUser);
           setShowLoginModal(false);
-          setShowAddressPicker(true);
         }}
       />
 

@@ -25,6 +25,14 @@ export default function Header() {
   const SERVICE_RADIUS_KM = 15;
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
+  const handleLocationClick = () => {
+    if (!user) {
+      window.dispatchEvent(new Event("openLoginModal"));
+      return;
+    }
+    setShowLocationModal(true);
+  };
+
   function getDistanceInKm(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -77,17 +85,15 @@ useEffect(() => {
   useEffect(() => {
     const lat = localStorage.getItem("divasa_location_lat");
     const lng = localStorage.getItem("divasa_location_lng");
-    if (!lat || !lng) {
-      setTimeout(() => setShowLocationModal(true), 800);
-    } else {
-      const distance = getDistanceInKm(
-        WAREHOUSE_LOCATION.lat, WAREHOUSE_LOCATION.lng,
-        parseFloat(lat), parseFloat(lng)
-      );
-      setDeliveryTime(Math.round(15 + distance * 2));
-      const savedName = localStorage.getItem("divasa_location_name");
-      setHeaderLocation(savedName || "Select Location");
-    }
+    if (!lat || !lng) return;
+
+    const distance = getDistanceInKm(
+      WAREHOUSE_LOCATION.lat, WAREHOUSE_LOCATION.lng,
+      parseFloat(lat), parseFloat(lng)
+    );
+    setDeliveryTime(Math.round(15 + distance * 2));
+    const savedName = localStorage.getItem("divasa_location_name");
+    setHeaderLocation(savedName || "Select Location");
   }, []);
 
   useEffect(() => {
@@ -202,7 +208,7 @@ useEffect(() => {
     Divasa Fresh
   </h2>
 </Link>
-            <div onClick={() => setShowLocationModal(true)} style={{
+            <div onClick={handleLocationClick} style={{
               padding: "6px 14px", borderRadius: 24, background: "#ffffff",
               border: "1px solid #e5e7eb", fontSize: 13, fontWeight: 500,
               cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.04)"
@@ -372,7 +378,7 @@ useEffect(() => {
   <span className="mh-logo">Divasa Fresh</span>
 </Link>
             </div>
-            <div className="mh-location" onClick={() => setShowLocationModal(true)}>
+            <div className="mh-location" onClick={handleLocationClick}>
               <div className="mh-loc-line1">
                 <span className="mh-pin">📍</span>
                 <span className="mh-loc-name">
@@ -455,7 +461,7 @@ useEffect(() => {
       </div>
 
       {/* LOCATION MODAL */}
-      {showLocationModal && (
+      {showLocationModal && user && (
         <div style={{
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
           display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999
