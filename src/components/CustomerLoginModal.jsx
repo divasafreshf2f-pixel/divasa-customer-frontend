@@ -71,6 +71,18 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
     onClose && onClose();
   };
 
+  const handleBackAction = () => {
+    if (step === "otp") {
+      setStep("phone");
+      setOtpDigits(Array(OTP_LENGTH).fill(""));
+      setTimer(30);
+      setError("");
+      setInfo("");
+      return;
+    }
+    closeModal();
+  };
+
   const completeLogin = (responseData) => {
     localStorage.setItem("divasa_token", responseData.token);
     localStorage.setItem("divasa_user", JSON.stringify(responseData.customer));
@@ -90,7 +102,6 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
       const serverOtp = String(sendOtpRes?.data?.otp || "").trim();
       const otpCandidates = [];
       if (/^\d{6}$/.test(serverOtp)) otpCandidates.push(serverOtp);
-      if (!otpCandidates.includes(REVIEW_OTP)) otpCandidates.push(REVIEW_OTP);
 
       for (const otpCandidate of otpCandidates) {
         try {
@@ -109,21 +120,11 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
       setStep("otp");
       setOtpDigits(REVIEW_OTP.split(""));
       setInfo("Temporary review mode active. Enter OTP 123456.");
-      setError("Auto-login failed. Please tap Verify OTP.");
+      setError("");
       return false;
     } catch (err) {
-      try {
-        const verifyRes = await api.post("/customer/verify-otp", {
-          phone: normalizedPhone,
-          otp: REVIEW_OTP,
-          name: nextName,
-        });
-        completeLogin(verifyRes.data);
-        return true;
-      } catch {
-        setError(err?.response?.data?.message || "Failed to start review login");
-        return false;
-      }
+      setError(err?.response?.data?.message || "Failed to start review login");
+      return false;
     }
   };
 
@@ -150,7 +151,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
       const didLogin = await handleReviewBypassLogin();
       setIsSendingOtp(false);
       sendOtpInFlightRef.current = false;
-      if (didLogin) return;
+      return;
     }
 
     try {
@@ -309,7 +310,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
         }}
       >
         <div
-          onClick={closeModal}
+          onClick={handleBackAction}
           style={{
             position: "absolute",
             top: 20,
