@@ -6,6 +6,7 @@ import CustomerLoginModal from "../components/CustomerLoginModal";
 import MapSelector from "../components/MapSelector";
 import { formatPrice, getReferenceMarketPrice, getReferenceMarketSubtotal } from "../utils/pricing";
 import { loadCashfreeClient } from "../utils/loadCashfree";
+import { REVIEW_DEFAULT_ADDRESS, REVIEW_MODE_ENABLED, REVIEW_PHONE } from "../config/reviewMode";
 
 
 
@@ -136,9 +137,14 @@ const [selectedAddress, setSelectedAddress] = useState(null);
   };
 
  useEffect(() => {
-  if (!currentUser?.phone) {
+  if (!currentUser?.phone && !REVIEW_MODE_ENABLED) {
     setShowLoginModal(true);
     return;
+  }
+  if (!currentUser?.phone && REVIEW_MODE_ENABLED) {
+    setShowLoginModal(false);
+    setSelectedAddress(REVIEW_DEFAULT_ADDRESS);
+    setReceiverDetails({ name: "Cashfree Reviewer", phone: REVIEW_PHONE });
   }
 
   setCart(getCart());
@@ -163,7 +169,13 @@ const [selectedAddress, setSelectedAddress] = useState(null);
 
   const fetchAddresses = async () => {
   try {
-    if (!currentUser?.phone) return;
+    if (!currentUser?.phone) {
+      if (REVIEW_MODE_ENABLED) {
+        setSelectedAddress(REVIEW_DEFAULT_ADDRESS);
+        setSavedAddresses([REVIEW_DEFAULT_ADDRESS]);
+      }
+      return;
+    }
 
     const res = await api.get(`/addresses/${currentUser.phone}`);
     const sorted = [...res.data].sort((a, b) => b.isDefault - a.isDefault);
@@ -203,6 +215,14 @@ const [selectedAddress, setSelectedAddress] = useState(null);
     }
   } catch (err) {
     console.error("Failed to fetch addresses", err);
+    if (REVIEW_MODE_ENABLED) {
+      setSelectedAddress(REVIEW_DEFAULT_ADDRESS);
+      setSavedAddresses([REVIEW_DEFAULT_ADDRESS]);
+      setReceiverDetails({
+        name: currentUser?.name || "Cashfree Reviewer",
+        phone: currentUser?.phone || REVIEW_PHONE,
+      });
+    }
   }
 };
 
@@ -211,6 +231,13 @@ const [selectedAddress, setSelectedAddress] = useState(null);
   fetchAddresses();
 
 }, [currentUser?.phone]);
+
+ useEffect(() => {
+  if (!REVIEW_MODE_ENABLED) return;
+  if (!selectedAddress) {
+    setSelectedAddress(REVIEW_DEFAULT_ADDRESS);
+  }
+ }, [selectedAddress]);
 
  useEffect(() => {
   const syncUser = () => {
@@ -382,7 +409,8 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
   };
 
   const buildOrderPayload = (paymentMethod = "COD") => {
-    if (!selectedAddress) {
+    const effectiveAddress = selectedAddress || (REVIEW_MODE_ENABLED ? REVIEW_DEFAULT_ADDRESS : null);
+    if (!effectiveAddress) {
       throw new Error("Address is required");
     }
 
@@ -446,12 +474,12 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
       customerName: finalName,
       customerPhone: finalPhone,
       customerAddress: {
-        addressLine: selectedAddress.addressLine || selectedAddress.mapAddress,
-        landmark: selectedAddress.landmark || "",
-        city: selectedAddress.city || "Bangalore",
-        pincode: selectedAddress.pincode || "560049",
-        latitude: selectedAddress.latitude || selectedAddress.lat,
-        longitude: selectedAddress.longitude || selectedAddress.lng,
+        addressLine: effectiveAddress.addressLine || effectiveAddress.mapAddress,
+        landmark: effectiveAddress.landmark || "",
+        city: effectiveAddress.city || "Bangalore",
+        pincode: effectiveAddress.pincode || "560049",
+        latitude: effectiveAddress.latitude || effectiveAddress.lat,
+        longitude: effectiveAddress.longitude || effectiveAddress.lng,
       },
       items: cart.map((item) => ({
         productId: item.productId,
@@ -535,7 +563,7 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
     }
   };
 
-  if (!currentUser) {
+  if (!currentUser && !REVIEW_MODE_ENABLED) {
     return (
       <div style={{ padding: "110px 20px", background: "#f1f8f3", minHeight: "100vh" }}>
         <h2 style={{ marginBottom: 8 }}>Login Required</h2>
@@ -661,7 +689,10 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
     border: "1px solid #e5e7eb",
     cursor: "pointer"
   }}
-  onClick={() => setCheckoutStep("address")}
+  onClick={() => {
+    if (REVIEW_MODE_ENABLED) return;
+    setCheckoutStep("address");
+  }}
   >
     
     {/* USER NAME */}
@@ -956,7 +987,11 @@ onMouseLeave={(e) => e.currentTarget.style.background = "#f1f8f3"}
   return;
 }
 
-
+  if (REVIEW_MODE_ENABLED) {
+    setSelectedAddress(REVIEW_DEFAULT_ADDRESS);
+    setCheckoutStep("codConfirm");
+    return;
+  }
   setCheckoutStep("address");
 }}
 
@@ -1007,7 +1042,10 @@ onMouseLeave={(e) => e.currentTarget.style.background = "#f1f8f3"}
       </div>
 
       <span
-        onClick={() => setCheckoutStep("address")}
+        onClick={() => {
+          if (REVIEW_MODE_ENABLED) return;
+          setCheckoutStep("address");
+        }}
         style={{
           fontSize: 12,
           fontWeight: 600,
@@ -1229,7 +1267,7 @@ onMouseLeave={(e) => e.currentTarget.style.background = "#f1f8f3"}
       </div>
 
     {/* STEP 1: SELECT ADDRESS MODAL */}
-{checkoutStep === "address" && (
+{checkoutStep === "address" && !REVIEW_MODE_ENABLED && (
   <div className="cart-modal-overlay" style={modalOverlayStyle} onClick={() => setCheckoutStep(null)}>
     <div className="cart-modal-sheet" style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
       <div style={{ padding: '20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1406,7 +1444,7 @@ onMouseLeave={(e) => e.currentTarget.style.background = "#f1f8f3"}
 )}
 
 {/* STEP 2: FULL MAP MODAL */}
-{checkoutStep === "map" && (
+{checkoutStep === "map" && !REVIEW_MODE_ENABLED && (
   <div className="cart-modal-overlay" style={modalOverlayStyle} onClick={() => setCheckoutStep("address")}>
     <div className="cart-modal-map" style={{
       background: "#fff",
@@ -1439,7 +1477,7 @@ borderRadius: "20px",
 )}
 
 {/* STEP 3: ADDRESS DETAILS FORM */}
-{checkoutStep === "details" && (
+{checkoutStep === "details" && !REVIEW_MODE_ENABLED && (
   <div className="cart-modal-overlay" style={modalOverlayStyle} onClick={() => setCheckoutStep(null)}>
     <div className="cart-modal-sheet" style={{ ...modalContentStyle, padding: '25px' }} onClick={(e) => e.stopPropagation()}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 20 }}>

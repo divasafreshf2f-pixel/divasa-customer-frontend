@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import MapSelector from "./MapSelector";
 import { getCartCount, getCart } from "../utils/cartStorage";
+import { REVIEW_DEFAULT_LOCATION, REVIEW_MODE_ENABLED } from "../config/reviewMode";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function Header() {
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
   const handleLocationClick = () => {
+    if (REVIEW_MODE_ENABLED) return;
     if (!user) {
       window.dispatchEvent(new Event("openLoginModal"));
       return;
@@ -83,6 +85,15 @@ useEffect(() => {
 }, []);
 
   useEffect(() => {
+    if (REVIEW_MODE_ENABLED) {
+      localStorage.setItem("divasa_location_lat", String(REVIEW_DEFAULT_LOCATION.lat));
+      localStorage.setItem("divasa_location_lng", String(REVIEW_DEFAULT_LOCATION.lng));
+      localStorage.setItem("divasa_location_name", REVIEW_DEFAULT_LOCATION.name);
+      setHeaderLocation(REVIEW_DEFAULT_LOCATION.name);
+      setDeliveryTime(15);
+      return;
+    }
+
     const lat = localStorage.getItem("divasa_location_lat");
     const lng = localStorage.getItem("divasa_location_lng");
     if (!lat || !lng) return;
@@ -461,7 +472,7 @@ useEffect(() => {
       </div>
 
       {/* LOCATION MODAL */}
-      {showLocationModal && user && (
+      {showLocationModal && user && !REVIEW_MODE_ENABLED && (
         <div style={{
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
           display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999

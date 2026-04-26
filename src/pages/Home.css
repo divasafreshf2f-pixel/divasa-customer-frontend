@@ -314,14 +314,14 @@ html, body, #root {
   }
 
   .home-products-scroll {
-    max-height: calc(100vh - 332px);
-    overflow-y: auto;
-    padding-right: 1px;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .product-container {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 8px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
   }
 
   .product-card {
@@ -423,12 +423,13 @@ html, body, #root {
   .page-root { padding-top: 112px !important; }
 
   .home-products-scroll {
-    max-height: calc(100vh - 316px);
+    max-height: none;
+    overflow: visible;
   }
 
   .product-container {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 6px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
   }
 
   .product-img-wrap img { height: 64px !important; }

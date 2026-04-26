@@ -14,6 +14,7 @@ import { formatPrice, getReferenceMarketPrice } from "../utils/pricing";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import MapSelector from "../components/MapSelector";
 import CustomerLoginModal from "../components/CustomerLoginModal";
+import { REVIEW_DEFAULT_LOCATION, REVIEW_MODE_ENABLED } from "../config/reviewMode";
 
 export default function Home() {
 
@@ -65,7 +66,7 @@ export default function Home() {
     if (!user) {
       setShowAddressPicker(false);
       setShowMapModal(false);
-      setShowLoginModal(true);
+      setShowLoginModal(REVIEW_MODE_ENABLED ? false : true);
       return;
     }
 
@@ -102,6 +103,15 @@ export default function Home() {
 
     fetchAddresses();
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (!REVIEW_MODE_ENABLED) return;
+    localStorage.setItem("divasa_location_lat", String(REVIEW_DEFAULT_LOCATION.lat));
+    localStorage.setItem("divasa_location_lng", String(REVIEW_DEFAULT_LOCATION.lng));
+    localStorage.setItem("divasa_location_name", REVIEW_DEFAULT_LOCATION.name);
+    setShowMapModal(false);
+    setShowAddressPicker(false);
+  }, []);
 
   const [favs, setFavs] = useState([]);
   const [message, setMessage] = useState("");
@@ -354,7 +364,7 @@ export default function Home() {
   }, [liveEta]);
 
   function handleAddToCart(product, variant) {
-    if (!user) {
+    if (!user && !REVIEW_MODE_ENABLED) {
       window.dispatchEvent(new Event("openLoginModal"));
       return;
     }
@@ -1000,7 +1010,7 @@ export default function Home() {
       )}
 
       {/* LOCATION MODAL */}
-      {showMapModal === true && user && (
+      {showMapModal === true && user && !REVIEW_MODE_ENABLED && (
         <div
           style={{
             position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
@@ -1051,7 +1061,7 @@ export default function Home() {
         }}
       />
 
-      {showAddressPicker && user && (
+      {showAddressPicker && user && !REVIEW_MODE_ENABLED && (
         <div
           style={{
             position: "fixed",
@@ -1159,7 +1169,7 @@ export default function Home() {
         </div>
       )}
 
-      {!user && (
+      {!user && !REVIEW_MODE_ENABLED && (
         <div
           style={{
             position: "fixed",

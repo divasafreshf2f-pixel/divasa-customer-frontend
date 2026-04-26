@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import api from "../services/api";
+import { REVIEW_MODE_ENABLED, REVIEW_OTP, REVIEW_PHONE } from "../config/reviewMode";
 
 export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
   const [phone, setPhone] = useState("");
@@ -70,6 +71,62 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
     onClose && onClose();
   };
 
+  const completeLogin = (responseData) => {
+    localStorage.setItem("divasa_token", responseData.token);
+    localStorage.setItem("divasa_user", JSON.stringify(responseData.customer));
+    window.dispatchEvent(new Event("userUpdated"));
+    onSuccess && onSuccess();
+    closeModal();
+  };
+
+  const handleReviewBypassLogin = async () => {
+    const nextName = name?.trim() || "Cashfree Reviewer";
+    try {
+      const sendOtpRes = await api.post("/customer/send-otp", {
+        phone: normalizedPhone,
+        name: nextName,
+      });
+
+      const serverOtp = String(sendOtpRes?.data?.otp || "").trim();
+      const otpCandidates = [];
+      if (/^\d{6}$/.test(serverOtp)) otpCandidates.push(serverOtp);
+      if (!otpCandidates.includes(REVIEW_OTP)) otpCandidates.push(REVIEW_OTP);
+
+      for (const otpCandidate of otpCandidates) {
+        try {
+          const verifyRes = await api.post("/customer/verify-otp", {
+            phone: normalizedPhone,
+            otp: otpCandidate,
+            name: nextName,
+          });
+          completeLogin(verifyRes.data);
+          return true;
+        } catch {
+          // try next OTP candidate
+        }
+      }
+
+      setStep("otp");
+      setOtpDigits(REVIEW_OTP.split(""));
+      setInfo("Temporary review mode active. Enter OTP 123456.");
+      setError("Auto-login failed. Please tap Verify OTP.");
+      return false;
+    } catch (err) {
+      try {
+        const verifyRes = await api.post("/customer/verify-otp", {
+          phone: normalizedPhone,
+          otp: REVIEW_OTP,
+          name: nextName,
+        });
+        completeLogin(verifyRes.data);
+        return true;
+      } catch {
+        setError(err?.response?.data?.message || "Failed to start review login");
+        return false;
+      }
+    }
+  };
+
   const handleSendOtp = async () => {
     const now = Date.now();
     if (now - lastSendOtpAtRef.current < 1200) return;
@@ -88,6 +145,13 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
     setInfo("");
     setTimer(30);
     setIsSendingOtp(true);
+
+    if (REVIEW_MODE_ENABLED && normalizedPhone === REVIEW_PHONE) {
+      const didLogin = await handleReviewBypassLogin();
+      setIsSendingOtp(false);
+      sendOtpInFlightRef.current = false;
+      if (didLogin) return;
+    }
 
     try {
       const res = await api.post("/customer/send-otp", { phone: normalizedPhone, name });
@@ -108,7 +172,12 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
         setOtpDigits(serverOtp.split(""));
         setInfo(serverMessage ? `${serverMessage}. Dev OTP: ${serverOtp}` : `Dev OTP: ${serverOtp}`);
       } else {
-        setOtpDigits(Array(OTP_LENGTH).fill(""));
+        if (REVIEW_MODE_ENABLED && normalizedPhone === REVIEW_PHONE) {
+          setOtpDigits(REVIEW_OTP.split(""));
+          setInfo("Temporary review mode active. OTP: 123456");
+        } else {
+          setOtpDigits(Array(OTP_LENGTH).fill(""));
+        }
         if (serverMessage) setInfo(serverMessage);
       }
     } catch (err) {
@@ -148,14 +217,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
         otp: otp.toString().trim(),
         name,
       });
-
-      localStorage.setItem("divasa_token", res.data.token);
-      localStorage.setItem("divasa_user", JSON.stringify(res.data.customer));
-
-      window.dispatchEvent(new Event("userUpdated"));
-
-      onSuccess && onSuccess();
-      closeModal();
+      completeLogin(res.data);
     } catch (err) {
       setError(err?.response?.data?.message || "Invalid OTP");
     } finally {
