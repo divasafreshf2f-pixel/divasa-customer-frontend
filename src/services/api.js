@@ -134,6 +134,9 @@ export const getAssetCandidates = (value = "") => {
 
   const apiHostUrl = `${getApiHost()}${preferredPath}`;
   const apiHostRawUrl = `${getApiHost()}${normalizedPath}`;
+  const githubUploadsBase = "https://raw.githubusercontent.com/divasafreshf2f-pixel/Divasa-Backend-V2/main";
+  const githubPreferredUrl = `${githubUploadsBase}${preferredPath}`;
+  const githubRawUrl = `${githubUploadsBase}${normalizedPath}`;
 
   const isLocalBrowser =
     typeof window !== "undefined" &&
@@ -154,6 +157,8 @@ export const getAssetCandidates = (value = "") => {
 
   pushUnique(apiHostUrl);
   if (normalizedPath !== preferredPath) pushUnique(apiHostRawUrl);
+  pushUnique(githubPreferredUrl);
+  if (normalizedPath !== preferredPath) pushUnique(githubRawUrl);
   return candidates;
 };
 
