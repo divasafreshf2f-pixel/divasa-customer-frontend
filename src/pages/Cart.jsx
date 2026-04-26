@@ -512,6 +512,17 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
 
   const handleOnlinePayment = async () => {
     try {
+      if (REVIEW_MODE_ENABLED) {
+        setIsProcessingPayment(true);
+        const payload = buildOrderPayload("ONLINE");
+        await api.post("/orders", payload);
+        clearCart();
+        setCart([]);
+        setCheckoutStep(null);
+        navigate("/order-success");
+        return;
+      }
+
       const cashfree = await loadCashfreeClient();
 
       setIsProcessingPayment(true);
