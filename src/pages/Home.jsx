@@ -78,7 +78,9 @@ export default function Home() {
 
         if (sorted.length === 0) {
           setShowAddressPicker(false);
-          navigate("/saved-addresses?action=add");
+          if (!REVIEW_MODE_ENABLED) {
+            navigate("/saved-addresses?action=add");
+          }
           return;
         }
 
@@ -94,7 +96,9 @@ export default function Home() {
         setSavedAddresses([]);
         if (err?.response?.status === 404) {
           setShowAddressPicker(false);
-          navigate("/saved-addresses?action=add");
+          if (!REVIEW_MODE_ENABLED) {
+            navigate("/saved-addresses?action=add");
+          }
           return;
         }
         setShowAddressPicker(false);
@@ -432,6 +436,7 @@ export default function Home() {
   }
 
   function openAddAddressFlow() {
+    if (REVIEW_MODE_ENABLED) return;
     navigate("/saved-addresses?action=add");
   }
 

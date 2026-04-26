@@ -4,6 +4,7 @@ import MapSelector from "../components/MapSelector";
 import { useLocation, useNavigate } from "react-router-dom";
 import AccountSidebar from "../components/AccountSidebar";
 import Header from "../components/Header";
+import { REVIEW_MODE_ENABLED } from "../config/reviewMode";
 
 const MOBILE_STYLE = `
 @media (max-width: 768px) {
@@ -62,6 +63,14 @@ export default function SavedAddresses() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("action") !== "add") return;
+
+    if (REVIEW_MODE_ENABLED) {
+      setShowForm(false);
+      setIsMapConfirmed(false);
+      setSelectedLocation(null);
+      navigate("/saved-addresses", { replace: true });
+      return;
+    }
 
     setEditingId(null);
     setSelectedLocation(null);
