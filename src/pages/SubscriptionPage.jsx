@@ -4,6 +4,7 @@ import api from "../services/api";
 import MapSelector from "../components/MapSelector";
 import Header from "../components/Header";
 import { loadCashfreeClient } from "../utils/loadCashfree";
+import { REVIEW_MODE_ENABLED } from "../config/reviewMode";
 
 
 const SubscriptionPage = () => {
@@ -568,7 +569,7 @@ const validateAndProceed = () => {
         mealConfig: selectedPlanType === "meal" ? mealSelections[selectedPlan.id] : null,
       };
 
-      if (formData.paymentType === "full") {
+      if (formData.paymentType === "full" && !REVIEW_MODE_ENABLED) {
         const cashfree = await loadCashfreeClient();
 
         const orderRes = await api.post("/payment/create-order", {
