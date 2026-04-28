@@ -397,12 +397,24 @@ const AboutPage = () => {
         <div style={{ maxWidth: "1100px", margin: "0 auto", textAlign: "center" }}>
           <h2 style={sectionTitle}>The Minds Behind Divasa Fresh</h2>
           <p style={{ ...sectionText, maxWidth: "700px", margin: "0 auto 60px" }}>Our leadership team combines deep agricultural roots with modern operational expertise to bridge the gap between farm and society.</p>
+          <p style={{ 
+  fontSize: "16px", 
+  color: "#CBD5E1", 
+  maxWidth: "700px", 
+  margin: "0 auto 60px", 
+  lineHeight: "1.6" 
+}}>
+  Divasa Fresh is a Bangalore-based fresh produce company founded by <strong>Dhanraj H B</strong>, who serves as the Founder and CEO of the company.
+</p>
+          <p style={{ ...sectionText, maxWidth: "700px", margin: "0 auto 60px" }}>
+            Divasa Fresh leadership includes <strong>Dhanraj H B</strong> as Founder & CEO, <strong>Kavya T</strong> as Proprietor & Director, and <strong>Vijay Krishna</strong> as Chief Operating Officer.
+          </p>
           <div className="leaders-grid" style={{
             display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
             borderRadius: "40px", overflow: "hidden", border: THEME.glassBorder, background: "rgba(255,255,255,0.02)"
           }}>
             {[
-              { id: "DH", name: "Dhanraj H B", role: "Founder", bio: "Driving the vision of a farmer-first ecosystem, focusing on sustainable sourcing and community growth." },
+              { id: "DH", name: "Dhanraj H B", role: "Founder & CEO", bio: "Driving the vision of a farmer-first ecosystem, focusing on sustainable sourcing and community growth." },
               { id: "KT", name: "Kavya T", role: "Proprietor & Director", bio: "Leading corporate strategy and ensuring the brand maintains its commitment to quality and transparency." },
               { id: "VK", name: "Vijay Krishna", role: "Chief Operating Officer", bio: "Oversees operational logistics, supply chain efficiency, and the management of B2B and B2C distribution channels." }
             ].map((leader, i) => (
