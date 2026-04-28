@@ -493,13 +493,15 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
         ? 20
         : 0;
 
+    const discountedSubtotal = Math.max(
+      currentTotal - finalCouponDiscount - finalJuiceDiscount,
+      0
+    );
     const finalGrandTotal =
-      currentTotal +
+      discountedSubtotal +
       finalHandlingFee +
       finalDeliveryFee +
-      finalBagFee -
-      finalCouponDiscount -
-      finalJuiceDiscount;
+      finalBagFee;
 
     const finalName = receiverDetails.name?.trim() || user.name || "Customer";
     const finalPhone = receiverDetails.phone?.trim() || user.phone;

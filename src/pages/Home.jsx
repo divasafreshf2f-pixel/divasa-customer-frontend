@@ -426,6 +426,19 @@ export default function Home() {
     }, 100);
   }
 
+  function normalizeCategoryKey(category = "") {
+    const normalized = String(category).trim().toLowerCase();
+    if (!normalized) return "";
+    if (normalized === "all") return "all";
+    if (normalized.includes("veget")) return "vegetable";
+    if (normalized.includes("fruit salad")) return "fruit salad";
+    if (normalized.includes("fruit")) return "fruits";
+    if (normalized.includes("juice")) return "juice";
+    if (normalized.includes("powder")) return "solar dry powders";
+    if (normalized.includes("combo")) return "combo packs";
+    return normalized;
+  }
+
   function scrollToProducts() {
     const section = document.getElementById("products-section");
     if (section) {
@@ -782,9 +795,10 @@ export default function Home() {
           .filter((product) => !isHiddenCategory(product.category))
           .filter((product) => product.name.toLowerCase().includes(search.toLowerCase()))
           .filter((product) => {
-            const category = product.category?.toLowerCase();
-            if (campaignMode) return category === campaignMode;
-            return activeCategory === "all" ? true : category === activeCategory;
+            const category = normalizeCategoryKey(product.category);
+            const selectedCategory = normalizeCategoryKey(activeCategory);
+            if (campaignMode) return category === normalizeCategoryKey(campaignMode);
+            return selectedCategory === "all" ? true : category === selectedCategory;
           })
           .map((product) => {
             const availableVariants = getDisplayVariants(product);
