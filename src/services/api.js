@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const envApiUrlRaw = import.meta.env.VITE_API_URL;
-const envApiUrl = String(envApiUrlRaw || "").replace(/divasa-backend-xmvh\.onrender\.com/gi, "divasa-backend-xwvh.onrender.com");
+const envApiUrl = String(envApiUrlRaw || "").trim();
 const isProd = Boolean(import.meta.env.PROD);
 const isLocalhostFrontend =
   typeof window !== "undefined" &&
@@ -18,15 +18,18 @@ const normalizeApiBase = (url) => {
   return /\/api$/i.test(secure) ? secure : `${secure}/api`;
 };
 
+const PRIMARY_CLOUD_API_URL = "https://divasa-backend-xmvh.onrender.com/api";
+const SECONDARY_CLOUD_API_URL = "https://divasa-backend-xwvh.onrender.com/api";
+
 const API_BASE_URL =
   envApiUrl
     ? normalizeApiBase(envApiUrl)
     : isLocalhostFrontend
       ? `${window.location.protocol}//${window.location.hostname}:5000/api`
-      : "https://divasa-backend-xwvh.onrender.com/api";
+      : PRIMARY_CLOUD_API_URL;
 const LOCAL_FALLBACK_API_URL = isLocalhostFrontend
   ? `${window.location.protocol}//${window.location.hostname}:5000/api`
-  : "https://divasa-backend-xwvh.onrender.com/api";
+  : PRIMARY_CLOUD_API_URL;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -62,18 +65,39 @@ api.interceptors.response.use(
       typeof window !== "undefined" &&
       ["localhost", "127.0.0.1"].includes(window.location.hostname);
     const isNetworkError = !error?.response;
+    const currentBase = String(config.baseURL || api.defaults.baseURL || "");
 
     // If API URL points to stale LAN IP in local dev, retry once with localhost backend.
     if (
       isLocalhostFrontend &&
       isNetworkError &&
       !config.__retriedWithLocalFallback &&
-      (config.baseURL || api.defaults.baseURL) !== LOCAL_FALLBACK_API_URL
+      currentBase !== LOCAL_FALLBACK_API_URL
     ) {
       const nextConfig = {
         ...config,
         baseURL: LOCAL_FALLBACK_API_URL,
         __retriedWithLocalFallback: true,
+      };
+      return api.request(nextConfig);
+    }
+
+    // Cloud fallback: retry once with the alternate Render host.
+    if (
+      !isLocalhostFrontend &&
+      isNetworkError &&
+      !config.__retriedWithCloudFallback
+    ) {
+      const primaryHost = PRIMARY_CLOUD_API_URL.replace(/\/api\/?$/, "");
+      const secondaryHost = SECONDARY_CLOUD_API_URL.replace(/\/api\/?$/, "");
+      const nextCloudBase = currentBase.includes(primaryHost)
+        ? SECONDARY_CLOUD_API_URL
+        : PRIMARY_CLOUD_API_URL;
+
+      const nextConfig = {
+        ...config,
+        baseURL: nextCloudBase,
+        __retriedWithCloudFallback: true,
       };
       return api.request(nextConfig);
     }
@@ -91,7 +115,7 @@ api.interceptors.response.use(
   }
 );
 
-export const getApiBaseUrl = () => api.defaults.baseURL || "https://divasa-backend-xwvh.onrender.com/api";
+export const getApiBaseUrl = () => api.defaults.baseURL || PRIMARY_CLOUD_API_URL;
 
 export const getApiHost = () => getApiBaseUrl().replace(/\/api\/?$/, "");
 
