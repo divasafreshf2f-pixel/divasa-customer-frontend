@@ -492,8 +492,6 @@ export default function BulkOrder() {
   };
 
   const launchBulkOnlinePayment = async () => {
-    const cashfree = await loadCashfreeClient();
-
     const orderRes = await api.post("/payment/create-order", {
       amount: grandTotal,
       currency: "INR",
@@ -501,9 +499,11 @@ export default function BulkOrder() {
     });
 
     const { order_id, payment_session_id } = orderRes.data || {};
+    const gatewayMode = String(orderRes?.data?.gateway_mode || "").toLowerCase();
     if (!order_id || !payment_session_id) {
       throw new Error("Invalid payment order response");
     }
+    const cashfree = await loadCashfreeClient(gatewayMode);
 
     const checkoutResult = await cashfree.checkout({
       paymentSessionId: payment_session_id,

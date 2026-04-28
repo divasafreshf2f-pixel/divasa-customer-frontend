@@ -1,488 +1,494 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../services/api";
-import { REVIEW_MODE_ENABLED, REVIEW_OTP, REVIEW_PHONE } from "../config/reviewMode";
 
 export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
-  const [phone, setPhone] = useState("");
-  const [show, setShow] = useState(false);
-  const [timer, setTimer] = useState(30);
   const OTP_LENGTH = 6;
-  const [otpDigits, setOtpDigits] = useState(() => Array(OTP_LENGTH).fill(""));
+
+  const [show, setShow] = useState(false);
   const [step, setStep] = useState("phone");
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(""));
+  const [timer, setTimer] = useState(30);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isCheckingOtp, setIsCheckingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
-  const [name, setName] = useState("");
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
-  const otpInputRefs = useRef([]);
-  const sendOtpInFlightRef = useRef(false);
-  const verifyOtpInFlightRef = useRef(false);
-  const lastSendOtpAtRef = useRef(0);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(true);
+
+  const otpRefs = useRef([]);
+  const autoVerifyTriggeredRef = useRef(false);
 
   const normalizedPhone = phone.replace(/\D/g, "").slice(-10);
   const otp = otpDigits.join("");
 
   useEffect(() => {
-    setStep("phone");
-    setPhone("");
-    setOtpDigits(Array(OTP_LENGTH).fill(""));
-    setName("");
-    setError("");
-    setInfo("");
-  }, []);
-
-  useEffect(() => {
-    const openModal = () => setShow(true);
-
-    window.addEventListener("openLoginModal", openModal);
-
-    return () => {
-      window.removeEventListener("openLoginModal", openModal);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof isOpen === "boolean") {
-      setShow(isOpen);
-    }
+    if (typeof isOpen === "boolean") setShow(isOpen);
   }, [isOpen]);
 
   useEffect(() => {
-    if (step !== "otp") return;
-    if (timer <= 0) return;
+    const openModal = () => setShow(true);
+    window.addEventListener("openLoginModal", openModal);
+    return () => window.removeEventListener("openLoginModal", openModal);
+  }, []);
 
-    const interval = setInterval(() => {
-      setTimer((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [timer, step]);
+  useEffect(() => {
+    if (step !== "otp" || timer <= 0) return;
+    const id = setInterval(() => setTimer((prev) => prev - 1), 1000);
+    return () => clearInterval(id);
+  }, [step, timer]);
 
   useEffect(() => {
     if (step === "otp") {
-      setTimeout(() => otpInputRefs.current[0]?.focus(), 0);
+      setTimeout(() => otpRefs.current[0]?.focus(), 0);
     }
   }, [step]);
 
+  useEffect(() => {
+    if (step !== "otp") return;
+    if (otpDigits.some((d) => !d)) {
+      autoVerifyTriggeredRef.current = false;
+      setOtpVerified(false);
+      return;
+    }
+    if (isCheckingOtp || isVerifyingOtp) return;
+    if (autoVerifyTriggeredRef.current) return;
+    autoVerifyTriggeredRef.current = true;
+    handleCheckOtp();
+  }, [otpDigits, step, isCheckingOtp, isVerifyingOtp]);
+
+  const resetState = () => {
+    setStep("phone");
+    setPhone("");
+    setName("");
+    setOtpDigits(Array(OTP_LENGTH).fill(""));
+    setTimer(30);
+    setError("");
+    setInfo("");
+    setOtpVerified(false);
+    setIsNewUser(true);
+    autoVerifyTriggeredRef.current = false;
+  };
+
   const closeModal = () => {
     setShow(false);
-    sendOtpInFlightRef.current = false;
-    verifyOtpInFlightRef.current = false;
+    resetState();
     onClose && onClose();
   };
 
-  const handleBackAction = () => {
+  const completeLogin = (data) => {
+    localStorage.setItem("divasa_token", data.token);
+    localStorage.setItem("divasa_user", JSON.stringify(data.customer));
+    window.dispatchEvent(new Event("userUpdated"));
+    onSuccess && onSuccess();
+    closeModal();
+  };
+
+  const handleBack = () => {
     if (step === "otp") {
       setStep("phone");
       setOtpDigits(Array(OTP_LENGTH).fill(""));
       setTimer(30);
       setError("");
       setInfo("");
+      autoVerifyTriggeredRef.current = false;
       return;
     }
     closeModal();
-  };
-
-  const completeLogin = (responseData) => {
-    localStorage.setItem("divasa_token", responseData.token);
-    localStorage.setItem("divasa_user", JSON.stringify(responseData.customer));
-    window.dispatchEvent(new Event("userUpdated"));
-    onSuccess && onSuccess();
-    closeModal();
-  };
-
-  const handleReviewBypassLogin = async () => {
-    const nextName = name?.trim() || "Cashfree Reviewer";
-    try {
-      const sendOtpRes = await api.post("/customer/send-otp", {
-        phone: normalizedPhone,
-        name: nextName,
-      });
-
-      const serverOtp = String(sendOtpRes?.data?.otp || "").trim();
-      const otpCandidates = [];
-      if (/^\d{6}$/.test(serverOtp)) otpCandidates.push(serverOtp);
-
-      for (const otpCandidate of otpCandidates) {
-        try {
-          const verifyRes = await api.post("/customer/verify-otp", {
-            phone: normalizedPhone,
-            otp: otpCandidate,
-            name: nextName,
-          });
-          completeLogin(verifyRes.data);
-          return true;
-        } catch {
-          // try next OTP candidate
-        }
-      }
-
-      setStep("otp");
-      setOtpDigits(REVIEW_OTP.split(""));
-      setInfo("Temporary review mode active. Enter OTP 123456.");
-      setError("");
-      return false;
-    } catch (err) {
-      setError(err?.response?.data?.message || "Failed to start review login");
-      return false;
-    }
   };
 
   const handleSendOtp = async () => {
-    const now = Date.now();
-    if (now - lastSendOtpAtRef.current < 1200) return;
-    lastSendOtpAtRef.current = now;
-
-    if (isSendingOtp || sendOtpInFlightRef.current) return;
-    sendOtpInFlightRef.current = true;
-
     if (normalizedPhone.length !== 10) {
       setError("Enter valid 10 digit phone number");
-      sendOtpInFlightRef.current = false;
       return;
     }
-
+    setIsSendingOtp(true);
     setError("");
     setInfo("");
-    setTimer(30);
-    setIsSendingOtp(true);
-
-    if (REVIEW_MODE_ENABLED && normalizedPhone === REVIEW_PHONE) {
-      const didLogin = await handleReviewBypassLogin();
-      setIsSendingOtp(false);
-      sendOtpInFlightRef.current = false;
-      return;
-    }
-
     try {
-      const res = await api.post("/customer/send-otp", { phone: normalizedPhone, name });
-      const serverOtp = String(res?.data?.otp || "").trim();
-      const serverMessage = String(res?.data?.message || "").trim();
-      const hasDevOtp = import.meta.env.DEV && /^\d{6}$/.test(serverOtp);
-      const hasDeliveryIssue =
-        /pending|could not be delivered|failed|not sent|delivery/i.test(serverMessage) &&
-        !/sent successfully/i.test(serverMessage);
-
-      if (hasDeliveryIssue && !hasDevOtp) {
-        setError(serverMessage || "OTP delivery failed. Please try again.");
-        return;
-      }
-
+      const res = await api.post("/customer/send-otp", { phone: normalizedPhone });
       setStep("otp");
-      if (hasDevOtp) {
-        setOtpDigits(serverOtp.split(""));
-        setInfo(serverMessage ? `${serverMessage}. Dev OTP: ${serverOtp}` : `Dev OTP: ${serverOtp}`);
-      } else {
-        if (REVIEW_MODE_ENABLED && normalizedPhone === REVIEW_PHONE) {
-          setOtpDigits(REVIEW_OTP.split(""));
-          setInfo("Temporary review mode active. OTP: 123456");
-        } else {
-          setOtpDigits(Array(OTP_LENGTH).fill(""));
-        }
-        if (serverMessage) setInfo(serverMessage);
-      }
+      setTimer(30);
+      setOtpDigits(Array(OTP_LENGTH).fill(""));
+      setIsNewUser(Boolean(res?.data?.isNewUser));
+      setOtpVerified(false);
+      setInfo(res?.data?.message || "OTP sent successfully");
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-          "Failed to send OTP. Please check your internet or backend API URL."
-      );
+      setError(err?.response?.data?.message || "Failed to send OTP");
     } finally {
       setIsSendingOtp(false);
-      sendOtpInFlightRef.current = false;
+    }
+  };
+
+  const handleCheckOtp = async () => {
+    if (otp.length !== OTP_LENGTH) return;
+    setIsCheckingOtp(true);
+    setError("");
+    try {
+      const res = await api.post("/customer/check-otp", {
+        phone: normalizedPhone,
+        otp,
+      });
+      setOtpVerified(true);
+      const newUser = Boolean(res?.data?.isNewUser);
+      setIsNewUser(newUser);
+      setInfo("OTP verified");
+
+      // Old users: OTP-only login flow.
+      if (!newUser) {
+        const loginRes = await api.post("/customer/verify-otp", {
+          phone: normalizedPhone,
+          otp,
+        });
+        completeLogin(loginRes.data);
+      }
+    } catch (err) {
+      autoVerifyTriggeredRef.current = false;
+      setOtpVerified(false);
+      setError(err?.response?.data?.message || "Invalid OTP");
+    } finally {
+      setIsCheckingOtp(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (isVerifyingOtp || verifyOtpInFlightRef.current) return;
-    verifyOtpInFlightRef.current = true;
-
-    if (!name || name.trim() === "") {
+    if (!otpVerified) {
+      setError("Please enter valid OTP");
+      return;
+    }
+    if (isNewUser && !name.trim()) {
       setError("Name is required");
-      verifyOtpInFlightRef.current = false;
+      return;
+    }
+    if (otp.length !== OTP_LENGTH) {
+      setError("Enter valid OTP");
       return;
     }
 
-    if (!otp || otp.trim() === "") {
-      setError("Enter OTP");
-      verifyOtpInFlightRef.current = false;
-      return;
-    }
-
+    setIsVerifyingOtp(true);
     setError("");
     setInfo("");
-    setIsVerifyingOtp(true);
-
     try {
       const res = await api.post("/customer/verify-otp", {
         phone: normalizedPhone,
-        otp: otp.toString().trim(),
-        name,
+        otp,
+        ...(isNewUser ? { name: name.trim() } : {}),
       });
       completeLogin(res.data);
     } catch (err) {
+      autoVerifyTriggeredRef.current = false;
       setError(err?.response?.data?.message || "Invalid OTP");
     } finally {
       setIsVerifyingOtp(false);
-      verifyOtpInFlightRef.current = false;
     }
   };
 
-  const handleOtpInputChange = (index, value) => {
-    const digitsOnly = value.replace(/\D/g, "");
-    if (!digitsOnly) {
-      const nextDigits = [...otpDigits];
-      nextDigits[index] = "";
-      setOtpDigits(nextDigits);
+  const handleOtpInput = (index, raw) => {
+    const digits = raw.replace(/\D/g, "");
+    if (!digits) {
+      const next = [...otpDigits];
+      next[index] = "";
+      setOtpDigits(next);
       return;
     }
 
-    const nextDigits = [...otpDigits];
+    const next = [...otpDigits];
     let cursor = index;
-    for (const digit of digitsOnly) {
+    for (const d of digits) {
       if (cursor >= OTP_LENGTH) break;
-      nextDigits[cursor] = digit;
+      next[cursor] = d;
       cursor += 1;
     }
-    setOtpDigits(nextDigits);
-
-    const focusIndex = Math.min(cursor, OTP_LENGTH - 1);
-    otpInputRefs.current[focusIndex]?.focus();
+    setOtpDigits(next);
+    otpRefs.current[Math.min(cursor, OTP_LENGTH - 1)]?.focus();
   };
 
   const handleOtpKeyDown = (index, event) => {
     if (event.key !== "Backspace") return;
 
     if (otpDigits[index]) {
-      const nextDigits = [...otpDigits];
-      nextDigits[index] = "";
-      setOtpDigits(nextDigits);
+      const next = [...otpDigits];
+      next[index] = "";
+      setOtpDigits(next);
       return;
     }
 
     if (index > 0) {
-      const nextDigits = [...otpDigits];
-      nextDigits[index - 1] = "";
-      setOtpDigits(nextDigits);
-      otpInputRefs.current[index - 1]?.focus();
+      const next = [...otpDigits];
+      next[index - 1] = "";
+      setOtpDigits(next);
+      otpRefs.current[index - 1]?.focus();
     }
   };
 
   const handleOtpPaste = (event) => {
     event.preventDefault();
-    const pastedDigits = (event.clipboardData.getData("text") || "")
-      .replace(/\D/g, "")
-      .slice(0, OTP_LENGTH)
-      .split("");
-    if (!pastedDigits.length) return;
+    const digits = (event.clipboardData.getData("text") || "").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!digits) return;
 
-    const nextDigits = Array(OTP_LENGTH).fill("");
-    for (let i = 0; i < pastedDigits.length; i += 1) {
-      nextDigits[i] = pastedDigits[i];
-    }
-    setOtpDigits(nextDigits);
-    const focusIndex = Math.min(pastedDigits.length, OTP_LENGTH - 1);
-    otpInputRefs.current[focusIndex]?.focus();
+    const next = Array(OTP_LENGTH).fill("");
+    for (let i = 0; i < digits.length; i += 1) next[i] = digits[i];
+    setOtpDigits(next);
+    otpRefs.current[Math.min(digits.length, OTP_LENGTH - 1)]?.focus();
   };
 
   if (!show) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 7000,
-      }}
-    >
-      <div
-        style={{
-          background: "#fff",
-          padding: 40,
-          borderRadius: 24,
-          width: 420,
-          textAlign: "center",
-          position: "relative",
-          maxWidth: "95vw",
-        }}
-      >
-        <div
-          onClick={handleBackAction}
-          style={{
-            position: "absolute",
-            top: 20,
-            left: 20,
-            cursor: "pointer",
-            fontSize: 20,
-          }}
-        >
+    <div style={styles.overlay}>
+      <div style={styles.card}>
+        <button onClick={handleBack} style={styles.backBtn} aria-label="Back">
           ←
-        </div>
+        </button>
 
-        <img
-          src="/logo.png"
-          alt="logo"
-          style={{
-            height: 60,
-            marginBottom: 10,
-            transform: "scale(4.2)",
-            transformOrigin: "center",
-          }}
-        />
-
-        <h3 style={{ margin: 0 }}>Healthy Living Starts Here</h3>
-        <p style={{ color: "#666", marginBottom: 20 }}>Log in or Sign up</p>
+        <img src="/logo.png" alt="Divasa Fresh" style={styles.logo} />
+        <h2 style={styles.title}>Healthy Living Starts Here</h2>
+        <p style={styles.subtitle}>Log in or Sign up</p>
 
         {step === "phone" ? (
           <>
-            <div
-              style={{
-                display: "flex",
-                border: "1px solid #ddd",
-                borderRadius: 12,
-                padding: "10px 12px",
-                marginBottom: 15,
-              }}
-            >
-              <span style={{ marginRight: 8 }}>+91</span>
+            <div style={styles.phoneWrap}>
+              <span style={styles.countryCode}>+91</span>
               <input
                 type="text"
+                inputMode="numeric"
+                maxLength={10}
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
                   if (error) setError("");
-                  if (info) setInfo("");
                 }}
-                placeholder="Enter phone number"
-                inputMode="numeric"
-                maxLength={10}
-                style={{
-                  border: "none",
-                  outline: "none",
-                  flex: 1,
-                }}
+                placeholder="Enter mobile number"
+                style={styles.phoneInput}
               />
             </div>
 
-            <button
-              onClick={handleSendOtp}
-              disabled={isSendingOtp}
-              style={{
-                width: "100%",
-                height: 45,
-                background: "#22C55E",
-                color: "#fff",
-                border: "none",
-                borderRadius: 12,
-                fontWeight: 600,
-                cursor: isSendingOtp ? "not-allowed" : "pointer",
-                opacity: isSendingOtp ? 0.75 : 1,
-              }}
-            >
+            <button onClick={handleSendOtp} disabled={isSendingOtp} style={styles.primaryBtn}>
               {isSendingOtp ? "Sending..." : "Continue"}
             </button>
+
+            <p style={styles.terms}>
+              By continuing, you agree to our{" "}
+              <a href="/terms" target="_blank" rel="noreferrer" style={styles.link}>Terms of service</a>{" "}
+              &{" "}
+              <a href="/privacy" target="_blank" rel="noreferrer" style={styles.link}>Privacy policy</a>
+            </p>
           </>
         ) : (
           <>
-            <p>Enter OTP sent to +91 {normalizedPhone}</p>
-            <div
-              onPaste={handleOtpPaste}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 8,
-                marginBottom: 12,
-              }}
-            >
-              {otpDigits.map((digit, index) => (
+            <p style={styles.otpHint}>Enter OTP sent to +91 {normalizedPhone}</p>
+
+            <div style={styles.otpRow} onPaste={handleOtpPaste}>
+              {otpDigits.map((digit, idx) => (
                 <input
-                  key={`otp-${index}`}
-                  ref={(el) => {
-                    otpInputRefs.current[index] = el;
-                  }}
+                  key={`otp-${idx}`}
+                  ref={(el) => { otpRefs.current[idx] = el; }}
                   type="text"
-                  value={digit}
-                  onChange={(e) => {
-                    handleOtpInputChange(index, e.target.value);
-                    if (error) setError("");
-                    if (info) setInfo("");
-                  }}
-                  onKeyDown={(e) => handleOtpKeyDown(index, e)}
                   inputMode="numeric"
                   maxLength={1}
-                  style={{
-                    width: 48,
-                    height: 52,
-                    textAlign: "center",
-                    fontSize: 20,
-                    fontWeight: 700,
-                    borderRadius: 10,
-                    border: "1px solid #ddd",
-                    outline: "none",
+                  value={digit}
+                  onChange={(e) => {
+                    handleOtpInput(idx, e.target.value);
+                    if (error) setError("");
                   }}
+                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                  style={styles.otpInput}
                 />
               ))}
             </div>
 
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (error) setError("");
-                if (info) setInfo("");
-              }}
-              placeholder="Enter your name"
-              style={{
-                width: "100%",
-                padding: 12,
-                borderRadius: 10,
-                border: "1px solid #ddd",
-                marginBottom: 12,
-              }}
-            />
+            {isNewUser ? (
+              <>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (error) setError("");
+                  }}
+                  placeholder="Enter your name"
+                  style={styles.nameInput}
+                />
 
-            <button
-              onClick={handleVerifyOtp}
-              disabled={isVerifyingOtp}
-              style={{
-                width: "100%",
-                height: 45,
-                background: "#16a34a",
-                color: "#fff",
-                border: "none",
-                borderRadius: 12,
-                fontWeight: 600,
-                cursor: isVerifyingOtp ? "not-allowed" : "pointer",
-                opacity: isVerifyingOtp ? 0.75 : 1,
-              }}
-            >
-              {isVerifyingOtp ? "Verifying..." : "Verify OTP"}
-            </button>
+                <button onClick={handleVerifyOtp} disabled={isVerifyingOtp || !otpVerified} style={styles.primaryBtn}>
+                  {isVerifyingOtp ? "Continuing..." : "Continue"}
+                </button>
+              </>
+            ) : (
+              <button onClick={handleVerifyOtp} disabled={isVerifyingOtp || !otpVerified} style={styles.primaryBtn}>
+                {isVerifyingOtp ? "Verifying..." : "Verify OTP"}
+              </button>
+            )}
 
-            <p style={{ marginTop: 10, fontSize: 13, color: "#666" }}>
+            <p style={styles.resendText}>
               {timer > 0 ? (
-                <>
-                  Resend OTP in <b>{timer}s</b>
-                </>
+                <>Resend OTP in <b>{timer}s</b></>
               ) : (
-                <span
-                  onClick={handleSendOtp}
-                  style={{ color: "#22C55E", cursor: "pointer", fontWeight: 600 }}
-                >
-                  Resend OTP
-                </span>
+                <span onClick={handleSendOtp} style={styles.resendAction}>Resend OTP</span>
               )}
             </p>
           </>
         )}
 
-        {info && <p style={{ color: "#166534", marginTop: 10, fontSize: 13 }}>{info}</p>}
-        {error && <p style={{ color: "red", marginTop: 10, fontSize: 13 }}>{error}</p>}
+        {info ? <p style={styles.info}>{info}</p> : null}
+        {error ? <p style={styles.error}>{error}</p> : null}
       </div>
     </div>
   );
 }
+
+const styles = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(15, 23, 42, 0.45)",
+    backdropFilter: "blur(2px)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 7000,
+    padding: 18,
+  },
+  card: {
+    width: "100%",
+    maxWidth: 540,
+    background: "linear-gradient(180deg, #ffffff 0%, #f8fbf7 100%)",
+    borderRadius: 24,
+    padding: "22px 28px 24px",
+    boxShadow: "0 28px 64px rgba(15,23,42,0.18)",
+    border: "1px solid #e8efe6",
+    position: "relative",
+    textAlign: "center",
+  },
+  backBtn: {
+    position: "absolute",
+    left: 18,
+    top: 16,
+    border: "none",
+    background: "transparent",
+    fontSize: 26,
+    cursor: "pointer",
+    color: "#111827",
+    lineHeight: 1,
+  },
+  logo: {
+    height: 82,
+    margin: "0 auto 8px",
+    display: "block",
+    objectFit: "contain",
+    transform: "scale(2.1)"
+  },
+  title: {
+    margin: "0 5px 4px 0",
+    fontSize: 20,
+    fontWeight: 900,
+    letterSpacing: "-0.02em",
+    color: "#0f172a",
+  },
+  subtitle: {
+    margin: "0 0 18px 0",
+    color: "#475569",
+    fontSize: 17,
+  },
+  phoneWrap: {
+    display: "flex",
+    alignItems: "center",
+    border: "1px solid #d9e3d7",
+    borderRadius: 16,
+    padding: "0 14px",
+    height: 56,
+    marginBottom: 14,
+    background: "#fff",
+  },
+  countryCode: {
+    fontSize: 28,
+    fontWeight: 700,
+    color: "#0f172a",
+    marginRight: 12,
+  },
+  phoneInput: {
+    flex: 1,
+    border: "none",
+    outline: "none",
+    fontSize: 20,
+    color: "#111827",
+    background: "transparent",
+  },
+  primaryBtn: {
+    width: "100%",
+    height: 54,
+    border: "none",
+    borderRadius: 16,
+    background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: 800,
+    cursor: "pointer",
+  },
+  terms: {
+    margin: "14px 2px 0",
+    color: "#64748b",
+    fontSize: 14,
+    lineHeight: 1.5,
+  },
+  link: {
+    color: "#0f172a",
+    textDecoration: "underline",
+  },
+  otpHint: {
+    margin: "0 0 12px 0",
+    color: "#334155",
+    fontSize: 15,
+  },
+  otpRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 12,
+  },
+  otpInput: {
+    width: 64,
+    height: 58,
+    border: "1px solid #d6e2d3",
+    borderRadius: 14,
+    textAlign: "center",
+    fontSize: 28,
+    fontWeight: 800,
+    color: "#0f172a",
+    outline: "none",
+    background: "#fff",
+  },
+  nameInput: {
+    width: "100%",
+    height: 54,
+    border: "1px solid #d6e2d3",
+    borderRadius: 14,
+    padding: "0 14px",
+    fontSize: 17,
+    marginBottom: 12,
+    outline: "none",
+    background: "#fff",
+  },
+  resendText: {
+    margin: "10px 0 0",
+    color: "#64748b",
+    fontSize: 13,
+  },
+  resendAction: {
+    color: "#16a34a",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  info: {
+    marginTop: 10,
+    color: "#166534",
+    fontSize: 13,
+  },
+  error: {
+    marginTop: 10,
+    color: "#dc2626",
+    fontSize: 13,
+  },
+};

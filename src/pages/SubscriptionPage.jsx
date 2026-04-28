@@ -239,12 +239,12 @@ useEffect(() => {
 };
   const MOTIVATION_CARDS = [
     {
-      icon: "?",
+      icon: "🎯",
       title: "Stop Postponing",
       description: "Your meals are ready. No decision needed."
     },
     {
-      icon: "?",
+      icon: "📈",
       title: "Stay Consistent",
       description: "Build routines that stick with you."
     },
@@ -570,8 +570,6 @@ const validateAndProceed = () => {
       };
 
       if (formData.paymentType === "full" && !REVIEW_MODE_ENABLED) {
-        const cashfree = await loadCashfreeClient();
-
         const orderRes = await api.post("/payment/create-order", {
           amount: totalAmount,
           currency: "INR",
@@ -579,9 +577,11 @@ const validateAndProceed = () => {
         });
 
         const { order_id, payment_session_id } = orderRes.data || {};
+        const gatewayMode = String(orderRes?.data?.gateway_mode || "").toLowerCase();
         if (!order_id || !payment_session_id) {
           throw new Error("Invalid payment order response");
         }
+        const cashfree = await loadCashfreeClient(gatewayMode);
 
         const checkoutResult = await cashfree.checkout({
           paymentSessionId: payment_session_id,
@@ -1630,7 +1630,7 @@ input[type="date"]:focus {
     <div style={mergeStyles(styles.step, step === "plans" ? styles.stepActive : {})}>
       <div style={mergeStyles(styles.stepNumber, step === "plans" ? styles.stepNumberActive : 
         (step === "details" || step === "review") ? { background: "#dcfce7", color: "#16a34a", border: "2px solid #86efac" } : {})}>
-        {(step === "details" || step === "review") ? "?" : "1"}
+        {(step === "details" || step === "review") ? "✓" : "1"}
       </div>
       <div style={{ textAlign: "center" }}>
         <p style={mergeStyles(styles.stepLabel, step === "plans" ? styles.stepLabelActive : {})}>
@@ -1642,7 +1642,7 @@ input[type="date"]:focus {
       </div>
     </div>
 
-    {/* Divider 1?2 */}
+    {/* Divider 1-2 */}
     <div style={{
       ...styles.stepDivider,
       background: (step === "details" || step === "review") ? "linear-gradient(90deg, #22c55e, #86efac)" : "#e5e7eb",
@@ -1652,7 +1652,7 @@ input[type="date"]:focus {
     <div style={mergeStyles(styles.step, step === "details" ? styles.stepActive : {})}>
       <div style={mergeStyles(styles.stepNumber, step === "details" ? styles.stepNumberActive :
         step === "review" ? { background: "#dcfce7", color: "#16a34a", border: "2px solid #86efac" } : {})}>
-        {step === "review" ? "?" : "2"}
+        {step === "review" ? "✓" : "2"}
       </div>
       <div style={{ textAlign: "center" }}>
         <p style={mergeStyles(styles.stepLabel, step === "details" ? styles.stepLabelActive : {})}>
@@ -1664,7 +1664,7 @@ input[type="date"]:focus {
       </div>
     </div>
 
-    {/* Divider 2?3 */}
+    {/* Divider 2-3 */}
     <div style={{
       ...styles.stepDivider,
       background: step === "review" ? "linear-gradient(90deg, #22c55e, #86efac)" : "#e5e7eb",
@@ -1862,7 +1862,7 @@ input[type="date"]:focus {
                           fontSize: "14px",
                         }}
                       >
-                        ?{pricing.mrp}
+                        ₹{pricing.mrp}
                       </div>
 
                       <div
@@ -1873,7 +1873,7 @@ input[type="date"]:focus {
                           marginBottom: "4px",
                         }}
                       >
-                        ?{pricing.offer}
+                        ₹{pricing.offer}
                       </div>
 
                       <div
@@ -1899,7 +1899,7 @@ input[type="date"]:focus {
                   }}
                 >
                   {selectedPlan?.id === plan.id
-                    ? "? Locked In"
+                    ? "✓ Locked In"
                     : plan.id === "fresh-start"
                     ? "Start Fresh Today"
                     : plan.id === "stay-on"
@@ -2092,7 +2092,7 @@ input[type="date"]:focus {
           fontSize: "14px",
         }}
       >
-        ?{pricing.mrp}
+        ₹{pricing.mrp}
       </div>
 
       <div
@@ -2103,7 +2103,7 @@ input[type="date"]:focus {
           marginBottom: "4px",
         }}
       >
-        ?{pricing.offer}
+        ₹{pricing.offer}
       </div>
 
       <div
@@ -2175,7 +2175,7 @@ input[type="date"]:focus {
     )}
   >
     {selectedPlan?.id === plan.id
-  ? "? Locked In"
+  ? "✓ Locked In"
   : plan.id === "power-routine"
   ? "Start With Strength"
   : plan.id === "no-excuses"
@@ -2352,7 +2352,7 @@ input[type="date"]:focus {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {[
               { value: "cod", label: "Cash on Delivery", icon: "💵", desc: "Pay on arrival" },
-              { value: "full", label: "Pay Now", icon: "?", desc: "Secure & instant" },
+              { value: "full", label: "Pay Now", icon: "💳", desc: "Secure & instant" },
             ].map((option) => (
               <div key={option.value}
                 onClick={() => setFormData(prev => ({ ...prev, paymentType: option.value }))}
@@ -2552,7 +2552,7 @@ input[type="date"]:focus {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: "13px", color: "#86efac", fontWeight: 600 }}>Total Amount</span>
             <span style={{ fontSize: "22px", color: "#4ade80", fontWeight: 900 }}>
-              ?{selectedPlanType === "fruit" ? getSelectedFruitPrice() : calculateTotal()}
+              ₹{selectedPlanType === "fruit" ? getSelectedFruitPrice() : calculateTotal()}
             </span>
           </div>
         </div>
@@ -2566,7 +2566,7 @@ input[type="date"]:focus {
         ← Back to Plans
       </button>
       <button style={styles.btnPrimary} onClick={validateAndProceed}>
-        Review & Confirm ?
+        Review & Confirm
       </button>
     </div>
   </div>
@@ -3112,7 +3112,7 @@ input[type="date"]:focus {
                     fontSize: "18px", display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  ?
+                  ×
                 </button>
               </div>
             </div>

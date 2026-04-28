@@ -1,24 +1,36 @@
 let cashfreeLoaderPromise = null;
 let cashfreeInstance = null;
+let cashfreeModeCached = "";
 
-function getCashfreeMode() {
+function getCashfreeMode(explicitMode = "") {
+  const forced = String(explicitMode || "").toLowerCase();
+  if (forced === "production") return "production";
+  if (forced === "sandbox") return "sandbox";
+
   const envMode = String(import.meta.env.VITE_CASHFREE_ENV || "").toLowerCase();
   if (envMode === "production") return "production";
   if (envMode === "sandbox") return "sandbox";
   return import.meta.env.DEV ? "sandbox" : "production";
 }
 
-export function loadCashfreeClient() {
+export function loadCashfreeClient(mode) {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Window is not available"));
   }
 
-  if (cashfreeInstance) {
+  const targetMode = getCashfreeMode(mode);
+
+  if (cashfreeInstance && cashfreeModeCached === targetMode) {
     return Promise.resolve(cashfreeInstance);
   }
 
-  if (cashfreeLoaderPromise) {
+  if (cashfreeLoaderPromise && cashfreeModeCached === targetMode) {
     return cashfreeLoaderPromise;
+  }
+
+  if (cashfreeModeCached !== targetMode) {
+    cashfreeLoaderPromise = null;
+    cashfreeInstance = null;
   }
 
   cashfreeLoaderPromise = new Promise((resolve, reject) => {
@@ -27,7 +39,8 @@ export function loadCashfreeClient() {
         reject(new Error("Cashfree SDK did not initialize"));
         return;
       }
-      cashfreeInstance = window.Cashfree({ mode: getCashfreeMode() });
+      cashfreeInstance = window.Cashfree({ mode: targetMode });
+      cashfreeModeCached = targetMode;
       resolve(cashfreeInstance);
     };
 

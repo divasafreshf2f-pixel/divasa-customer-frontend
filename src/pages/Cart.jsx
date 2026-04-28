@@ -121,6 +121,40 @@ const [selectedAddress, setSelectedAddress] = useState(null);
     return normalized === "kg" || normalized === "1kg";
   };
 
+  const normalizeVariantLabel = (value = "") =>
+    String(value || "").trim().toLowerCase().replace(/\s+/g, "");
+
+  const resolveBackendVariantId = (item) => {
+    const product = allProducts.find((p) => String(p?._id) === String(item?.productId));
+    const variants = Array.isArray(product?.variants) ? product.variants : [];
+    if (!product || variants.length === 0) {
+      throw new Error(`Product not available in catalog: ${item?.name || "Unknown item"}`);
+    }
+
+    const idCandidates = [
+      String(item?.actualVariantId || "").trim(),
+      String(item?.variantId || "").trim(),
+      String(item?.variantId || "").split("_")[0].trim(),
+    ].filter(Boolean);
+
+    for (const candidate of idCandidates) {
+      const matched = variants.find((v) => String(v?._id) === candidate);
+      if (matched?._id) return String(matched._id);
+    }
+
+    const itemVariantLabel = normalizeVariantLabel(item?.variantName);
+    if (itemVariantLabel) {
+      const byName = variants.find((v) => normalizeVariantLabel(v?.name) === itemVariantLabel);
+      if (byName?._id) return String(byName._id);
+    }
+
+    if (variants.length === 1) {
+      return String(variants[0]._id);
+    }
+
+    throw new Error(`Variant not found for ${item?.name || "selected product"}. Please remove and add again.`);
+  };
+
   const getDefaultListingVariant = (product, variants) => {
     if (!Array.isArray(variants) || variants.length === 0) return null;
     if (!isWeightCategory(product?.category)) return variants[0];
@@ -483,7 +517,7 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
       },
       items: cart.map((item) => ({
         productId: item.productId,
-        variantId: item.actualVariantId || item.variantId,
+        variantId: resolveBackendVariantId(item),
         quantity: Number(item.quantity),
       })),
       handlingFee: finalHandlingFee,
@@ -523,8 +557,6 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
         return;
       }
 
-      const cashfree = await loadCashfreeClient();
-
       setIsProcessingPayment(true);
       const payload = buildOrderPayload("ONLINE");
 
@@ -535,9 +567,11 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
       });
 
       const { order_id, payment_session_id } = orderRes.data || {};
+      const gatewayMode = String(orderRes?.data?.gateway_mode || "").toLowerCase();
       if (!order_id || !payment_session_id) {
         throw new Error("Invalid payment order response");
       }
+      const cashfree = await loadCashfreeClient(gatewayMode);
 
       const checkoutResult = await cashfree.checkout({
         paymentSessionId: payment_session_id,

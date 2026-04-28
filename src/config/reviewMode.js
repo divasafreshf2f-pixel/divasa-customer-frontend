@@ -1,6 +1,5 @@
-// TEMPORARY: Cashfree reviewer bypass mode.
-// Set VITE_REVIEW_MODE=false to disable quickly after approval.
-export const REVIEW_MODE_ENABLED = String(import.meta.env.VITE_REVIEW_MODE || "true").toLowerCase() === "true";
+// Review mode is disabled by default in production use.
+export const REVIEW_MODE_ENABLED = String(import.meta.env.VITE_REVIEW_MODE || "false").toLowerCase() === "true";
 export const REVIEW_PHONE = "9999999999";
 export const REVIEW_OTP = "123456";
 
@@ -28,4 +27,3 @@ export const REVIEW_DEFAULT_ADDRESS = {
   longitude: REVIEW_DEFAULT_LOCATION.lng,
   isDefault: true,
 };
-
