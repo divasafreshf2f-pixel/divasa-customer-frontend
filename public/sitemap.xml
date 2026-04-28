@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://divasafresh.in/</loc>
-  </url>
-  <url>
-    <loc>https://divasafresh.in/about</loc>
-  </url>
+  <loc>https://divasafresh.in/cart</loc>
+</url>
+
+<url>
+  <loc>https://divasafresh.in/products</loc>
+</url>
+
+<url>
+  <loc>https://divasafresh.in/contact</loc>
+</url>
 </urlset>
