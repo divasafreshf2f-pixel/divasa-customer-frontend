@@ -318,9 +318,9 @@ const bagFee = noBag ? 0 : 5;
   const couponDiscount = couponApplied ? 25 : 0;
   const juiceUpsellDiscount = hasMeal && hasJuice ? 20 : 0;
 
-  // Apply discounts BEFORE GST
+const preDiscountTotal = totalAmount + handlingFee + deliveryFee + bagFee;
 const discountedSubtotal = Math.max(
-  totalAmount - couponDiscount - juiceUpsellDiscount,
+  preDiscountTotal - couponDiscount - juiceUpsellDiscount,
   0
 );
 
@@ -329,11 +329,7 @@ const discountedSubtotal = Math.max(
 let gst = 0;
 
 
-const grandTotal =
-  discountedSubtotal +
-  handlingFee +
-  deliveryFee +
-  bagFee;
+const grandTotal = discountedSubtotal;
 
   
  const couponSavings = couponDiscount;
@@ -493,15 +489,15 @@ const totalSavings = couponSavings + juiceSavings + slabSavings + bagSavings;
         ? 20
         : 0;
 
-    const discountedSubtotal = Math.max(
-      currentTotal - finalCouponDiscount - finalJuiceDiscount,
-      0
-    );
-    const finalGrandTotal =
-      discountedSubtotal +
+    const preDiscountTotal =
+      currentTotal +
       finalHandlingFee +
       finalDeliveryFee +
       finalBagFee;
+    const finalGrandTotal = Math.max(
+      preDiscountTotal - finalCouponDiscount - finalJuiceDiscount,
+      0
+    );
 
     const finalName = receiverDetails.name?.trim() || user.name || "Customer";
     const finalPhone = receiverDetails.phone?.trim() || user.phone;
