@@ -9,7 +9,8 @@ export default function Header() {
   const navigate = useNavigate();
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("divasa_user")) || null);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
-  const accountMenuRef = useRef(null);
+  const desktopAccountMenuRef = useRef(null);
+  const mobileAccountMenuRef = useRef(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [headerLocation, setHeaderLocation] = useState(null);
   const [deliveryTime, setDeliveryTime] = useState(null);
@@ -67,20 +68,27 @@ useEffect(() => {
 }, []);
 
 
-  useEffect(() => {
+useEffect(() => {
   function handleClickOutside(event) {
-    if (
-      accountMenuRef.current &&
-      !accountMenuRef.current.contains(event.target)
-    ) {
+    const target = event.target;
+    const clickedInsideDesktop =
+      desktopAccountMenuRef.current &&
+      desktopAccountMenuRef.current.contains(target);
+    const clickedInsideMobile =
+      mobileAccountMenuRef.current &&
+      mobileAccountMenuRef.current.contains(target);
+
+    if (!clickedInsideDesktop && !clickedInsideMobile) {
       setShowAccountMenu(false);
     }
   }
 
   document.addEventListener("mousedown", handleClickOutside);
+  document.addEventListener("touchstart", handleClickOutside);
 
   return () => {
     document.removeEventListener("mousedown", handleClickOutside);
+    document.removeEventListener("touchstart", handleClickOutside);
   };
 }, []);
 
@@ -303,7 +311,7 @@ useEffect(() => {
                 Login
               </button>
             ) : (
-<div ref={accountMenuRef} style={{ position: "relative" }}>
+<div ref={desktopAccountMenuRef} style={{ position: "relative" }}>
                   <button onClick={() => setShowAccountMenu(!showAccountMenu)} style={{
                   width: 42, height: 42, borderRadius: "50%",
                   background: "#f3f4f6", border: "1px solid #e5e7eb",
@@ -412,7 +420,7 @@ useEffect(() => {
               {!user ? (
                 <button className="mh-login-btn" onClick={() => window.dispatchEvent(new Event("openLoginModal"))}>Login</button>
               ) : (
-                <div style={{ position: "relative" }}>
+                <div ref={mobileAccountMenuRef} style={{ position: "relative" }}>
                   <button className="mh-account-btn" onClick={() => setShowAccountMenu(!showAccountMenu)}>👤</button>
                   {showAccountMenu && (
                     <div className="mh-account-menu">
