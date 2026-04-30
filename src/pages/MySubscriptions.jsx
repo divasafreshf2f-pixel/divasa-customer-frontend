@@ -661,7 +661,9 @@ export default function MySubscriptions() {
                       className="ms-info-sub"
                       style={{ color: sub.paymentStatus === "paid" ? "#16a34a" : "#d97706", fontWeight:700 }}
                     >
-                      {sub.paymentStatus === "paid" ? "✓ Paid" : "⏳ COD"} · {sub.paymentType?.toUpperCase()}
+                      {sub.paymentStatus === "paid"
+                        ? `✓ Paid${sub.paymentCollectedVia ? ` (${sub.paymentCollectedVia})` : ""}`
+                        : `⏳ One-time COD${sub.paymentDueDate ? ` · Due ${fmtShort(sub.paymentDueDate)}` : ""}`} · {sub.paymentType?.toUpperCase()}
                     </div>
                   </div>
                 </div>

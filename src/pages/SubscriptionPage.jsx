@@ -495,6 +495,21 @@ const calculateTotal = () => {
   return 0;
 };
 
+const getEffectiveDurationType = () => {
+  if (selectedPlanType === "fruit" && selectedPlan?.id === "fresh-start") {
+    return fruitSelections["fresh-start"]?.duration || "monthly";
+  }
+  if (selectedPlanType === "meal") return "monthly";
+  return formData.durationType;
+};
+
+const getDerivedMealSlot = () => {
+  if (selectedPlanType !== "meal" || !selectedPlan?.id) return formData.deliverySlot;
+  const meals = mealSelections[selectedPlan.id]?.meals || 1;
+  const mealSlot = mealSelections[selectedPlan.id]?.slot || "lunch";
+  return meals >= 2 ? "lunch-dinner" : mealSlot;
+};
+
 const validateAndProceed = () => {
     if (!selectedPlan) {
       setMessage("Please select a plan first.");
@@ -507,7 +522,7 @@ const validateAndProceed = () => {
       window.scrollTo(0, 0);
     } else if (step === "details") {
       const { name, phone, addressLine, city, pincode, latitude, longitude } = formData.deliveryDetails;
-      if (!selectedAddress || !name || !phone || !addressLine || !city || !pincode || !latitude || !longitude) {
+      if (!selectedAddress || !name || !phone || !addressLine || !city || !pincode || latitude == null || longitude == null) {
         setMessage("Please select your delivery address to continue.");
         setMessageType("error");
         return;
@@ -515,10 +530,7 @@ const validateAndProceed = () => {
 
       // Auto-set delivery slot for meal plans
       if (selectedPlanType === "meal") {
-        const meals = mealSelections[selectedPlan.id]?.meals || 1;
-        const mealSlot = mealSelections[selectedPlan.id]?.slot || "lunch";
-        const autoSlot = meals >= 2 ? "lunch-dinner" : mealSlot;
-        setFormData(prev => ({ ...prev, deliverySlot: autoSlot, durationType: "monthly" }));
+        setFormData(prev => ({ ...prev, deliverySlot: getDerivedMealSlot(), durationType: "monthly" }));
       }
 
       setStep("review");
@@ -549,9 +561,9 @@ const validateAndProceed = () => {
           selectedPlanType === "fruit"
             ? fruitSelections[selectedPlan.id].days
             : mealSelections[selectedPlan.id].days,
-        durationType: formData.durationType,
+        durationType: getEffectiveDurationType(),
         startDate: effectiveStartDate,
-        deliverySlot: formData.deliverySlot,
+        deliverySlot: selectedPlanType === "meal" ? getDerivedMealSlot() : formData.deliverySlot,
         pricePerUnit: totalAmount,
         totalPrice: totalAmount,
         paymentType: formData.paymentType,
@@ -1585,7 +1597,7 @@ input[type="date"]:focus {
         <div style={styles.heroFeatures}>
           {HERO_CONTENT.features.map((item, i) => (
             <div key={i} style={styles.featurePill}>
-              ? {item}
+              ✓ {item}
             </div>
           ))}
         </div>
@@ -2419,7 +2431,17 @@ input[type="date"]:focus {
             <select
               name="durationType"
               value={fruitSelections[selectedPlan?.id]?.duration || formData.durationType}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFruitSelections((prev) => ({
+                  ...prev,
+                  "fresh-start": {
+                    ...prev["fresh-start"],
+                    duration: value,
+                  },
+                }));
+                setFormData((prev) => ({ ...prev, durationType: value }));
+              }}
               style={{
                 width: "100%", padding: "10px 14px", borderRadius: "10px",
                 background: "rgba(255,255,255,0.08)", color: "#ffffff",
@@ -2597,13 +2619,13 @@ input[type="date"]:focus {
                    {selectedPlan.deliveriesPerDay}x day,{" "}
 {selectedPlanType === "fruit"
   ? fruitSelections[selectedPlan.id].days
-  : selectedPlan.daysPerWeek}x week
+  : mealSelections[selectedPlan.id].days}x week
                   </span>
                 </div>
                 <div style={styles.reviewItem}>
                   <span style={styles.reviewItemLabel}>Duration:</span>
                   <span style={mergeStyles(styles.reviewItemValue, {textTransform: "capitalize"})}>
-                    {formData.durationType}
+                    {getEffectiveDurationType()}
                   </span>
                 </div>
               </div>
@@ -2688,7 +2710,7 @@ input[type="date"]:focus {
 
                 <div style={styles.paymentMethod}>
                   <p style={styles.paymentMethodText}>
-                    Payment: {formData.paymentType === "cod" ? "Cash on Delivery" : "Pay Now"}
+                    Payment: {formData.paymentType === "cod" ? "One-time COD (pay within 3 days)" : "Pay Now"}
                   </p>
                 </div>
               </div>

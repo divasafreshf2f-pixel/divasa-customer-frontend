@@ -21,12 +21,11 @@ const normalizeApiBase = (url) => {
 const PRIMARY_CLOUD_API_URL = "https://divasa-backend-xmvh.onrender.com/api";
 const SECONDARY_CLOUD_API_URL = "https://divasa-backend-xwvh.onrender.com/api";
 
-const API_BASE_URL =
-  envApiUrl
+const API_BASE_URL = isLocalhostFrontend
+  ? `${window.location.protocol}//${window.location.hostname}:5000/api`
+  : envApiUrl
     ? normalizeApiBase(envApiUrl)
-    : isLocalhostFrontend
-      ? `${window.location.protocol}//${window.location.hostname}:5000/api`
-      : PRIMARY_CLOUD_API_URL;
+    : PRIMARY_CLOUD_API_URL;
 const LOCAL_FALLBACK_API_URL = isLocalhostFrontend
   ? `${window.location.protocol}//${window.location.hostname}:5000/api`
   : PRIMARY_CLOUD_API_URL;
@@ -58,7 +57,19 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const payload = response?.data;
+    if (
+      payload &&
+      typeof payload === "object" &&
+      Object.prototype.hasOwnProperty.call(payload, "success") &&
+      Object.prototype.hasOwnProperty.call(payload, "data")
+    ) {
+      response.data = payload.data;
+      response._meta = { success: payload.success, message: payload.message || "" };
+    }
+    return response;
+  },
   async (error) => {
     const config = error?.config || {};
     const isLocalhostFrontend =
@@ -89,7 +100,6 @@ api.interceptors.response.use(
       !config.__retriedWithCloudFallback
     ) {
       const primaryHost = PRIMARY_CLOUD_API_URL.replace(/\/api\/?$/, "");
-      const secondaryHost = SECONDARY_CLOUD_API_URL.replace(/\/api\/?$/, "");
       const nextCloudBase = currentBase.includes(primaryHost)
         ? SECONDARY_CLOUD_API_URL
         : PRIMARY_CLOUD_API_URL;
@@ -103,7 +113,18 @@ api.interceptors.response.use(
     }
 
     const status = error?.response?.status;
-    const message = String(error?.response?.data?.message || "").toLowerCase();
+    const wrappedPayload = error?.response?.data;
+    const safeErrorData =
+      wrappedPayload &&
+      typeof wrappedPayload === "object" &&
+      Object.prototype.hasOwnProperty.call(wrappedPayload, "success") &&
+      Object.prototype.hasOwnProperty.call(wrappedPayload, "message")
+        ? { ...wrappedPayload.data, message: wrappedPayload.message }
+        : wrappedPayload;
+    if (error?.response) {
+      error.response.data = safeErrorData;
+    }
+    const message = String(safeErrorData?.message || "").toLowerCase();
 
     // Auto-recover from stale/invalid customer token.
     if (status === 401 && (message.includes("token") || message.includes("not authorized"))) {

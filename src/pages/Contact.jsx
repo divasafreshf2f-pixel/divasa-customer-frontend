@@ -242,8 +242,8 @@ const ContactPage = () => {
             <form action="https://formsubmit.co/contact@divasfresh.in" method="POST">
               <input name="Name" placeholder="Full Name" required className="form-input" />
               <input name="Organisation" placeholder="Company Name" required className="form-input" />
-              <select name="Category" required className="form-input">
-                <option value="" disabled selected>Select Inquiry Category</option>
+              <select name="Category" required className="form-input" defaultValue="">
+                <option value="" disabled>Select Inquiry Category</option>
                 <option value="Home Delivery">Direct Home Delivery</option>
                 <option value="Consumer Subscription">Household Subscription</option>
                 <option value="Business Supply">Retail / Restaurant Supply</option>

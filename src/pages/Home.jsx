@@ -217,7 +217,64 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    api.get("/products").then((res) => setProducts(res.data));
+    const normalizeProducts = (list) =>
+      (Array.isArray(list) ? list : []).map((p) => {
+        const rawStock = Number(p?.stockQuantity);
+        const derivedVariantStock = Array.isArray(p?.variants)
+          ? p.variants.reduce((sum, v) => {
+              const n = Number(v?.stock);
+              return sum + (Number.isFinite(n) ? n : 0);
+            }, 0)
+          : 0;
+        return {
+          ...p,
+          stockQuantity: Number.isFinite(rawStock) ? rawStock : derivedVariantStock,
+        };
+      });
+
+    const loadProducts = async () => {
+      try {
+        const res = await api.get("/products", {
+          params: { _ts: Date.now() },
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+          },
+        });
+
+        let normalized = normalizeProducts(res.data);
+
+        // Localhost safety fallback: if stale zero-stock data appears, force-read directly from local backend.
+        if (
+          typeof window !== "undefined" &&
+          ["localhost", "127.0.0.1"].includes(window.location.hostname) &&
+          normalized.length > 0 &&
+          normalized.every((p) => Number(p.stockQuantity || 0) <= 0)
+        ) {
+          const localRes = await fetch(
+            `${window.location.protocol}//${window.location.hostname}:5000/api/products?_ts=${Date.now()}`,
+            { cache: "no-store" }
+          );
+          if (localRes.ok) {
+            const localData = await localRes.json();
+            normalized = normalizeProducts(localData);
+          }
+        }
+
+        setProducts(normalized);
+      } catch (err) {
+        console.error("Failed to load products:", err);
+        try {
+          const retry = await api.get("/products");
+          setProducts(normalizeProducts(retry.data));
+        } catch (retryErr) {
+          console.error("Retry products load failed:", retryErr);
+          setProducts([]);
+        }
+      }
+    };
+
+    loadProducts();
   }, []);
 
   useEffect(() => {
@@ -803,6 +860,8 @@ export default function Home() {
           .map((product) => {
             const availableVariants = getDisplayVariants(product);
             if (!availableVariants || availableVariants.length === 0) return null;
+            const totalStock = Number(product?.stockQuantity || 0);
+            const isOutOfStock = totalStock <= 0;
             const productImageSources = getProductImageSources(product);
             const productImage = productImageSources[0] || "";
             const selectedVariantId = selectedVariantIds[product._id];
@@ -820,7 +879,8 @@ export default function Home() {
                   background: "#ffffff", borderRadius: 18, padding: 14,
                   boxShadow: "0 6px 20px rgba(0,0,0,0.06)", border: "1px solid #eef2f7",
                   display: "flex", flexDirection: "column", justifyContent: "space-between",
-                  transition: "0.25s ease", cursor: "pointer", position: "relative"
+                  transition: "0.25s ease", cursor: "pointer", position: "relative",
+                  opacity: isOutOfStock ? 0.65 : 1,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-8px)";
@@ -835,6 +895,31 @@ export default function Home() {
                   if (img) img.style.transform = "scale(1)";
                 }}
               >
+                {isOutOfStock && (
+                 <div
+  style={{
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    transform: "translate(-50%, -50%) rotate(-15deg)",
+    zIndex: 6,
+    border: "3px solid #d11f1f",
+    color: "#d11f1f",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 0,
+    padding: "6px 16px",
+    background: "rgba(255,255,255,0.85)",
+    borderRadius: 4,
+    textTransform: "uppercase",
+    boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+    pointerEvents: "none",
+  }}
+>
+  OUT OF STOCK
+</div>
+                )}
+
                 {productImage && (
                   <div className="product-img-wrap" style={{ overflow: "hidden", borderRadius: 12 }}>
                     <img
@@ -935,7 +1020,17 @@ export default function Home() {
                   <span>{"\u20B9"}{formatPrice(selectedVariant.price)}</span>
                 </p>
 
-                {getItemQuantity(product._id, selectedVariant._id) === 0 ? (
+                {isOutOfStock ? (
+                  <button
+                    disabled
+                    style={{
+                      padding: "10px 0", background: "#e5e7eb", color: "#6b7280",
+                      borderRadius: 28, border: "none", fontWeight: 700, width: "100%"
+                    }}
+                  >
+                    Out Of Stock
+                  </button>
+                ) : getItemQuantity(product._id, selectedVariant._id) === 0 ? (
                   <button
                     className="add-btn"
                     onClick={() => handleAddToCart(product, selectedVariant)}
@@ -1226,4 +1321,3 @@ export default function Home() {
     </div>
   );
 }
-
