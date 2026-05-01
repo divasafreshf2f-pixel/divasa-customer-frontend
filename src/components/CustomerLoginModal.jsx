@@ -22,6 +22,7 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
   const autoVerifyTriggeredRef = useRef(false);
 
   const normalizedPhone = phone.replace(/\D/g, "").slice(-10);
+  const isValidIndianPhone = /^[6-9]\d{9}$/.test(normalizedPhone);
   const otp = otpDigits.join("");
 
   useEffect(() => {
@@ -100,8 +101,8 @@ export default function CustomerLoginModal({ onClose, onSuccess, isOpen }) {
   };
 
   const handleSendOtp = async () => {
-    if (normalizedPhone.length !== 10) {
-      setError("Enter valid 10 digit phone number");
+    if (!isValidIndianPhone) {
+      setError("Enter valid 10 digit phone number starting with 6-9");
       return;
     }
     setIsSendingOtp(true);
