@@ -19,7 +19,7 @@ const normalizeApiBase = (url) => {
 };
 
 const PRIMARY_CLOUD_API_URL = "https://divasa-backend-xmvh.onrender.com/api";
-const SECONDARY_CLOUD_API_URL = "https://divasa-backend-xwvh.onrender.com/api";
+const SECONDARY_CLOUD_API_URL = "https://divasa-backend-xmvh.onrender.com/api";
 
 const API_BASE_URL = isLocalhostFrontend
   ? `${window.location.protocol}//${window.location.hostname}:5000/api`
