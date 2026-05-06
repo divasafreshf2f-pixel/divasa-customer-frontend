@@ -1,18 +1,29 @@
 {
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/",
       "has": [
         {
           "type": "host",
           "value": "www.divasafresh.in"
         }
       ],
-      "destination": "https://divasafresh.in/:path*",
+      "destination": "https://divasafresh.in/",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/((?!.*\\.).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.divasafresh.in"
+        }
+      ],
+      "destination": "https://divasafresh.in/$1",
+      "permanent": true
+    },
+    {
+      "source": "/((?!.*\\.).*)",
       "has": [
         {
           "type": "host",
@@ -24,14 +35,14 @@
           "value": "http"
         }
       ],
-      "destination": "https://divasafresh.in/:path*",
+      "destination": "https://divasafresh.in/$1",
       "permanent": true
     }
   ],
- "rewrites": [
-  {
-    "source": "/((?!.*\\.).*)",
-    "destination": "/index.html"
-  }
-]
+  "rewrites": [
+    {
+      "source": "/((?!.*\\.).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
