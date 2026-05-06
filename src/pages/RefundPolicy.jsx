@@ -125,7 +125,7 @@ const RefundPolicy = () => {
           Refund & Cancellation Policy
         </h1>
         <p style={{ color: THEME.textMuted, fontSize: "13px", letterSpacing: "1px", fontWeight: 600 }}>
-          DIVASA FRESH | EFFECTIVE DATE: APRIL 16, 2026 | LAST UPDATED: APRIL 16, 2026
+          DIVASA FRESH | EFFECTIVE DATE: APRIL 16, 2026 | LAST UPDATED: MAY 2, 2026
         </p>
       </section>
 
@@ -334,6 +334,8 @@ const RefundPolicy = () => {
             No deductions will be made where the refund is due to an error from Divasa Fresh.
             <br /><br />
             All refunds are subject to the timelines and policies of the respective payment gateway and banking partners.
+            <br /><br />
+            All payments are securely processed through trusted third-party payment providers such as Cashfree. Divasa Fresh does not store full debit or credit card details.
           </div>
 
           {/* 9. Customer Responsibilities */}
@@ -385,7 +387,7 @@ const RefundPolicy = () => {
             }}>
               <strong style={{ color: THEME.primary, display: "block", marginBottom: "8px", fontSize: "15px" }}>Divasa Fresh Customer Support</strong>
               📞 Phone / WhatsApp: <strong style={{ color: THEME.accent }}>+91 9900152573</strong><br />
-              ✉️ Email: <a href="mailto:support@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>support@divasafresh.in</a><br />
+              ✉️ Email: <a href="mailto:contact@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>contact@divasafresh.in</a><br />
               🌐 Website: <a href="https://www.divasafresh.in" target="_blank" rel="noopener noreferrer" style={{ color: THEME.primary, textDecoration: "none" }}>www.divasafresh.in</a><br />
               📍 Business Location: Bengaluru, Karnataka, India
             </div>
@@ -396,7 +398,7 @@ const RefundPolicy = () => {
           {/* 13. Compliance */}
           <div id="part13" className="legal-section">
             <span className="glow-heading">13. Compliance</span>
-            Divasa Fresh operates in accordance with applicable consumer protection laws and ensures fair and transparent handling of all refund requests.
+            Divasa Fresh operates in accordance with applicable consumer protection laws. User data and personal information are handled in accordance with our Privacy Policy.
           </div>
 
           {/* 14. Policy Updates */}

@@ -26,6 +26,7 @@ import RefundPolicy from "./pages/RefundPolicy";
 import ShippingPolicy from "./pages/ShippingPolicy";
 import BulkOrder from "./pages/BulkOrder";
 import BulkOrders from "./pages/BulkOrders";
+import SeoHead from "./seo/SeoHead";
 
 
 
@@ -39,6 +40,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <SeoHead />
 
    
 
@@ -57,6 +59,7 @@ export default function App() {
     
       <ScrollToTop />
 
+      <main id="main-content" role="main">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/cart" element={<Cart />} />
@@ -91,8 +94,11 @@ export default function App() {
    
 
       </Routes>
+      </main>
 
-        <Footer />
+        <footer aria-label="Site footer">
+          <Footer />
+        </footer>
 
 
     </BrowserRouter>

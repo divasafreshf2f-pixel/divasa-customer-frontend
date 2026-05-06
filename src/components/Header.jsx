@@ -9,6 +9,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("divasa_user")) || null);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
+  const [showMobileQuickMenu, setShowMobileQuickMenu] = useState(false);
   const desktopAccountMenuRef = useRef(null);
   const mobileAccountMenuRef = useRef(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
@@ -80,6 +81,7 @@ useEffect(() => {
 
     if (!clickedInsideDesktop && !clickedInsideMobile) {
       setShowAccountMenu(false);
+      setShowMobileQuickMenu(false);
     }
   }
 
@@ -392,7 +394,7 @@ useEffect(() => {
         <div className="header-mobile">
           <div className="mh-row1">
             <div className="mh-brand">
-              <div className="mh-hamburger">☰</div>
+              <button className="mh-hamburger" onClick={() => setShowMobileQuickMenu((v) => !v)}>☰</button>
              <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
   <span className="mh-logo">Divasa Fresh</span>
 </Link>
@@ -474,6 +476,18 @@ useEffect(() => {
                 value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
           </div>
+          <div className="mh-quick-actions">
+            <button className="mh-quick-btn" onClick={() => navigate("/subscribe")}>Subscriptions</button>
+            <button className="mh-quick-btn" onClick={() => navigate("/bulk-order")}>Bulk Orders</button>
+          </div>
+          {showMobileQuickMenu && (
+            <div className="mh-quick-panel">
+              <div className="mh-menu-item" onClick={() => { setShowMobileQuickMenu(false); navigate("/subscribe"); }}>My Subscriptions</div>
+              <div className="mh-menu-item" onClick={() => { setShowMobileQuickMenu(false); navigate("/bulk-order"); }}>Place Bulk Order</div>
+              <div className="mh-menu-item" onClick={() => { setShowMobileQuickMenu(false); navigate("/my-bulk-orders"); }}>My Bulk Orders</div>
+              <div className="mh-menu-item" onClick={() => { setShowMobileQuickMenu(false); navigate("/my-orders"); }}>My Orders</div>
+            </div>
+          )}
         </div>
         {/* END MOBILE HEADER */}
 

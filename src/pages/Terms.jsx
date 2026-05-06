@@ -154,7 +154,7 @@ const Terms = () => {
           Terms of Service
         </h1>
         <p style={{ color: THEME.textMuted, fontSize: "13px", letterSpacing: "1px", fontWeight: 600 }}>
-          DIVASA FRESH | LAST UPDATED: JUNE 2026
+          DIVASA FRESH | LAST UPDATED: May 2, 2026
         </p>
       </section>
 
@@ -274,6 +274,8 @@ const Terms = () => {
             Payments can be made through available payment methods such as <strong style={{ color: THEME.accent }}>UPI, cards,</strong> or other supported modes. Orders are confirmed only after successful payment authorization.
             <br /><br />
             Divasa Fresh is not responsible for payment failures caused by banks or payment gateways.
+            <br /><br />
+            Divasa Fresh does not store full debit or credit card details. All payment information is securely processed by authorized third-party payment providers.
           </div>
 
           {/* 12. User Conduct */}
@@ -282,6 +284,8 @@ const Terms = () => {
             Users agree to use the platform responsibly and not engage in fraudulent activity, misuse of offers, abusive behavior, or disruption of services.
             <br /><br />
             Divasa Fresh reserves the right to restrict or suspend access in case of policy violations or misuse.
+            <br /><br />
+            Divasa Fresh reserves the right to suspend or terminate user accounts at its sole discretion in cases of fraud, misuse, violation of policies, or any activity that disrupts platform operations.
           </div>
 
           {/* 13. Promotions & Offers */}
@@ -313,7 +317,7 @@ const Terms = () => {
             <span className="glow-heading">16. Data & Communication</span>
             By using the platform, users consent to receive service-related communication via phone, SMS, email, or messaging platforms.
             <br /><br />
-            User data is used for operational and service purposes and is handled in accordance with applicable laws.
+            User data is used for operational and service purposes and is handled in accordance with our Privacy Policy. By using the platform, users agree to the collection, use, and processing of data as described in the Privacy Policy.
           </div>
 
           {/* 17. Intellectual Property */}
@@ -349,7 +353,7 @@ const Terms = () => {
             }}>
               <strong style={{ color: THEME.primary, display: "block", marginBottom: "8px", fontSize: "15px" }}>Divasa Fresh Customer Support</strong>
               📞 Phone / WhatsApp: <strong style={{ color: THEME.accent }}>+91 9900152573</strong><br />
-              ✉️ Email: <a href="mailto:support@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>support@divasafresh.in</a><br />
+              ✉️ Email: <a href="mailto:Contact@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>Contact@divasafresh.in</a><br />
               🌐 Website: <a href="https://www.divasafresh.in" target="_blank" rel="noopener noreferrer" style={{ color: THEME.primary, textDecoration: "none" }}>www.divasafresh.in</a><br />
               📍 Business Location: Bengaluru, Karnataka, India
             </div>

@@ -1,14 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-  <loc>https://divasafresh.in/cart</loc>
-</url>
-
-<url>
-  <loc>https://divasafresh.in/products</loc>
-</url>
-
-<url>
-  <loc>https://divasafresh.in/contact</loc>
-</url>
+  <url><loc>https://divasafresh.in/</loc></url>
+  <url><loc>https://divasafresh.in/about</loc></url>
+  <url><loc>https://divasafresh.in/contact</loc></url>
+  <url><loc>https://divasafresh.in/delivery-areas</loc></url>
+  <url><loc>https://divasafresh.in/faqs</loc></url>
+  <url><loc>https://divasafresh.in/mission</loc></url>
+  <url><loc>https://divasafresh.in/vision</loc></url>
+  <url><loc>https://divasafresh.in/subscribe</loc></url>
+  <url><loc>https://divasafresh.in/bulk-order</loc></url>
+  <url><loc>https://divasafresh.in/cart</loc></url>
+  <url><loc>https://divasafresh.in/my-orders</loc></url>
+  <url><loc>https://divasafresh.in/my-subscriptions</loc></url>
+  <url><loc>https://divasafresh.in/my-bulk-orders</loc></url>
+  <url><loc>https://divasafresh.in/my-favourites</loc></url>
+  <url><loc>https://divasafresh.in/saved-addresses</loc></url>
+  <url><loc>https://divasafresh.in/loyalty-cards</loc></url>
+  <url><loc>https://divasafresh.in/account-privacy</loc></url>
+  <url><loc>https://divasafresh.in/terms</loc></url>
+  <url><loc>https://divasafresh.in/privacy</loc></url>
+  <url><loc>https://divasafresh.in/refund-policy</loc></url>
+  <url><loc>https://divasafresh.in/shipping-policy</loc></url>
 </urlset>

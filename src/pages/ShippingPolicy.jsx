@@ -125,7 +125,7 @@ const ShippingPolicy = () => {
           Shipping & Delivery Policy
         </h1>
         <p style={{ color: THEME.textMuted, fontSize: "13px", letterSpacing: "1px", fontWeight: 600 }}>
-          DIVASA FRESH | LAST UPDATED: JUNE 2026
+          DIVASA FRESH | LAST UPDATED: May 2, 2026
         </p>
       </section>
 
@@ -289,6 +289,9 @@ const ShippingPolicy = () => {
             <p style={{ marginTop: "16px" }}>
               While Divasa Fresh aims to meet selected delivery windows, slight variations may occur due to real-world conditions.
             </p>
+            <p style={{ marginTop: "16px" }}>
+              Delivery time estimates are indicative and not guaranteed. Actual delivery times may vary based on real-time operational conditions.
+            </p>
           </div>
 
           {/* ── 5 ── */}
@@ -360,6 +363,9 @@ const ShippingPolicy = () => {
             <p style={{ marginTop: "16px" }}>
               Divasa Fresh will make reasonable efforts to complete deliveries as quickly as possible.
             </p>
+            <p style={{ marginTop: "16px" }}>
+              Divasa Fresh shall not be held liable for delays caused by factors beyond its control, including traffic, weather conditions, or third-party service disruptions.
+            </p>
           </div>
 
           {/* ── 10 ── */}
@@ -416,8 +422,8 @@ const ShippingPolicy = () => {
               marginTop: "16px"
             }}>
               📧{" "}
-              <a href="mailto:support@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>
-                support@divasafresh.in
+              <a href="mailto:Contact@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>
+                Contact@divasafresh.in
               </a>
             </div>
           </div>
@@ -473,8 +479,8 @@ const ShippingPolicy = () => {
               </a>
               <br />
               📧{" "}
-              <a href="mailto:support@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>
-                support@divasafresh.in
+              <a href="mailto:Contact@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>
+                Contact@divasafresh.in
               </a>
             </div>
           </div>

@@ -39,16 +39,27 @@ export default function AccountPrivacy() {
             <div style={privacyContentCard}>
               <div style={iconHeader}>🛡️</div>
               <p style={privacyText}>
-                At <b>Divasa Fresh</b>, we value your trust and are committed to protecting your personal information.
-                We collect only the necessary details required to process your orders, deliver products to your location,
-                and provide customer support.
+                At <b>Divasa Fresh</b>, we are committed to protecting your personal information and maintaining transparency in how your data is handled.
+                We collect only the information necessary to process orders, manage deliveries, and provide customer support.
               </p>
+
               <p style={privacyText}>
-                Your data is handled securely and is <b>never sold to third parties</b>. We use trusted payment and
-                service partners to ensure safe transactions and smooth delivery. By using our platform, you agree
-                to our privacy practices and terms of service.
+                Your data is handled securely and is <b>never sold, rented, or traded</b> to any third parties. We may share limited data only with trusted service providers such as payment gateways (Cashfree) and OTP/messaging services (MSG91) strictly for operational purposes. We do not store your full debit or credit card details.
               </p>
-              <div style={footerNote}>Last updated: October 2023</div>
+
+              <p style={privacyText}>
+                Users have full control over their data. You may request access, correction, or deletion of your personal information by contacting us at <b>contact@divasafresh.in</b>. Please include your registered phone number or email for verification.
+                Requests are processed within a reasonable timeframe, subject to legal and operational requirements.
+              </p>
+
+              <p style={privacyText}>
+                By using our platform, you explicitly agree to our Privacy Policy and Terms of Service, including the collection and use of data as described.
+              </p>
+
+              <p style={privacyText}>
+                For complete details, please refer to our full Privacy Policy available on our website.
+              </p>
+              <div style={footerNote}>Last updated: May 2, 2026</div>
             </div>
           </div>
                   </div>

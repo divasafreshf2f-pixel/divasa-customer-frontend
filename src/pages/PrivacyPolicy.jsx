@@ -14,7 +14,7 @@ const PrivacyPolicy = () => {
   // Logic to highlight sidebar based on scroll position
   useEffect(() => {
     const handleScroll = () => {
-      const sections = Array.from({ length: 10 }, (_, i) => `part${i + 1}`);
+      const sections = Array.from({ length: 12 }, (_, i) => `part${i + 1}`);
       for (const id of sections) {
         const el = document.getElementById(id);
         if (el) {
@@ -127,7 +127,7 @@ const PrivacyPolicy = () => {
           Privacy Policy
         </h1>
         <p style={{ color: THEME.textMuted, fontSize: "13px", letterSpacing: "1px", fontWeight: 600 }}>
-          DIVASA FRESH | LAST UPDATED: JUNE 2026
+          DIVASA FRESH | LAST UPDATED: MAY 2, 2026
         </p>
       </section>
 
@@ -142,9 +142,9 @@ const PrivacyPolicy = () => {
         <aside className="legal-sidebar" style={{ position: "sticky", top: "40px", height: "fit-content" }}>
           <p style={{ fontSize: "11px", fontWeight: 800, color: THEME.primary, marginBottom: "20px", letterSpacing: "1.5px" }}>CONTENTS</p>
           {[
-            "Introduction", "Information We Collect", "Purpose of Data Collection", 
+            "Introduction", "Information We Collect", "How We Use Your Information", 
             "Marketing Communication", "Data Sharing", "Data Security", "Data Retention", 
-            "User Rights", "Third-Party Links", "Updates to Policy"
+            "User Rights", "Children's Privacy", "Third-Party Links", "Updates to Policy", "Contact & Grievance Officer"
           ].map((title, i) => {
             const id = `part${i + 1}`;
             return (
@@ -176,7 +176,7 @@ const PrivacyPolicy = () => {
               and transparent manner.
             </p>
             <p style={{ marginTop: "16px" }}>
-              By using the Divasa Fresh platform, you consent to the practices described in this Policy.
+              By accessing or using the Divasa Fresh platform, you explicitly consent to the collection, use, storage, and sharing of your information as described in this Privacy Policy. If you do not agree, please discontinue use of the platform.
             </p>
           </div>
 
@@ -192,14 +192,13 @@ const PrivacyPolicy = () => {
               <li>Device and usage data such as IP address and session activity</li>
             </ul>
             <p style={{ marginTop: "16px" }}>
-              We do not store full debit or credit card details. Payments are processed securely through
-              authorized payment gateways.
+              Payments are processed securely through trusted third-party payment gateways such as Cashfree. We do not store your full debit or credit card details.
             </p>
           </div>
 
-          {/* 3. Purpose of Data Collection */}
+          {/* 3. How We Use Your Information */}
           <div id="part3" className="legal-section">
-            <span className="glow-heading">3. Purpose of Data Collection</span>
+            <span className="glow-heading">3. How We Use Your Information</span>
             <p>Your information is used for:</p>
             <ul style={{ marginTop: "15px", listStyleType: "disc", paddingLeft: "24px", lineHeight: "2.2" }}>
               <li>Processing and fulfilling orders</li>
@@ -230,13 +229,21 @@ const PrivacyPolicy = () => {
           {/* 5. Data Sharing */}
           <div id="part5" className="legal-section">
             <span className="glow-heading">5. Data Sharing</span>
-            <p>Divasa Fresh does not sell personal data.</p>
+            <p>Divasa Fresh does not sell, rent, or trade user personal data to any third parties under any circumstances.</p>
             <p style={{ marginTop: "16px" }}>Information may be shared with:</p>
             <ul style={{ marginTop: "15px", listStyleType: "disc", paddingLeft: "24px", lineHeight: "2.2" }}>
               <li>Delivery personnel for order fulfillment</li>
               <li>Payment gateway providers for transaction processing</li>
               <li>Service providers supporting platform operations</li>
               <li>Authorities where required by law</li>
+            </ul>
+            <p style={{ marginTop: "16px" }}>
+              We may use trusted third-party services including:
+            </p>
+            <ul style={{ marginTop: "10px", listStyleType: "disc", paddingLeft: "24px", lineHeight: "2.2" }}>
+              <li>Payment gateways such as Cashfree</li>
+              <li>OTP and messaging providers such as MSG91</li>
+              <li>Analytics and system monitoring tools</li>
             </ul>
             <p style={{ marginTop: "16px" }}>
               All sharing is limited to operational necessity and handled securely.
@@ -288,7 +295,13 @@ const PrivacyPolicy = () => {
                 <strong style={{ color: THEME.textMain }}>Account Deactivation:</strong> Users may request
                 account deactivation by contacting support.
               </li>
+              <li>
+                <strong style={{ color: THEME.textMain }}>Data Deletion:</strong> Users can request deletion of their account and personal data by contacting us via email.
+              </li>
             </ul>
+            <p style={{ marginTop: "16px" }}>
+              To request data deletion, please email contact@divasafresh.in using your registered phone number or email ID. Requests are processed within a reasonable timeframe, subject to legal obligations.
+            </p>
             <p style={{ marginTop: "16px" }}>Please note:</p>
             <ul style={{ marginTop: "10px", listStyleType: "disc", paddingLeft: "24px", lineHeight: "2.2" }}>
               <li>Account deletion requests will be processed within a reasonable timeframe.</li>
@@ -297,9 +310,20 @@ const PrivacyPolicy = () => {
             </ul>
           </div>
 
-          {/* 9. Third-Party Links */}
+          {/* 9. Children's Privacy */}
           <div id="part9" className="legal-section">
-            <span className="glow-heading">9. Third-Party Links</span>
+            <span className="glow-heading">9. Children's Privacy</span>
+            <p>
+              Our services are not intended for individuals under the age of 18. We do not knowingly collect personal data from children.
+            </p>
+            <p style={{ marginTop: "16px" }}>
+              If we become aware that personal data from a child has been collected, we will promptly delete such information and take steps to prevent further collection.
+            </p>
+          </div>
+
+          {/* 10. Third-Party Links */}
+          <div id="part10" className="legal-section">
+            <span className="glow-heading">10. Third-Party Links</span>
             <p>
               Our platform may include links to our official social media pages such as Instagram and Facebook.
             </p>
@@ -310,9 +334,9 @@ const PrivacyPolicy = () => {
             </p>
           </div>
 
-          {/* 10. Updates to Policy */}
-          <div id="part10" className="legal-section">
-            <span className="glow-heading">10. Updates to Policy</span>
+          {/* 11. Updates to Policy */}
+          <div id="part11" className="legal-section">
+            <span className="glow-heading">11. Updates to Policy</span>
             <p>
               This Privacy Policy may be updated from time to time. Changes will be published on this page.
             </p>
@@ -321,7 +345,7 @@ const PrivacyPolicy = () => {
             </p>
           </div>
 
-          {/* Contact */}
+          {/* 12. Contact & Grievance Officer */}
           <div style={{
             marginTop: "60px",
             padding: "32px",
@@ -330,19 +354,31 @@ const PrivacyPolicy = () => {
             border: "1px solid rgba(31, 170, 89, 0.15)"
           }}>
             <p style={{ fontSize: "11px", fontWeight: 800, color: THEME.primary, letterSpacing: "1.5px", marginBottom: "16px" }}>
-              11. CONTACT INFORMATION
+              12. CONTACT & GRIEVANCE OFFICER
             </p>
-            <p>For any questions or concerns regarding this Policy:</p>
+            <p>For any questions, concerns, or data requests:</p>
             <p style={{ marginTop: "14px" }}>
               📧{" "}
-              <a href="mailto:support@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>
-                support@divasafresh.in
+              <a href="mailto:contact@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>
+                contact@divasafresh.in
               </a>
             </p>
             <p style={{ marginTop: "8px" }}>
               📞{" "}
               <a href="tel:+919900152573" style={{ color: THEME.primary, textDecoration: "none" }}>
                 +91 9900152573
+              </a>
+            </p>
+            <p style={{ marginTop: "20px", fontSize: "14px", fontWeight: 600, color: THEME.textMain }}>
+              Grievance Officer
+            </p>
+            <p style={{ marginTop: "8px", color: THEME.textMuted }}>
+              Divasa Fresh Compliance Team
+            </p>
+            <p style={{ marginTop: "6px" }}>
+              📧{" "}
+              <a href="mailto:contact@divasafresh.in" style={{ color: THEME.primary, textDecoration: "none" }}>
+                contact@divasafresh.in
               </a>
             </p>
           </div>

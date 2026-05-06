@@ -97,12 +97,14 @@ html, body, #root {
     height: 28px;
     border-radius: 999px;
     background: #22c55e;
+    border: 0;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 13px;
     flex-shrink: 0;
+    cursor: pointer;
   }
 
   .mh-logo {
@@ -201,6 +203,28 @@ html, body, #root {
   }
 
   .mh-search-row { padding: 6px 10px 8px; }
+  .mh-quick-actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 10px 8px;
+  }
+  .mh-quick-btn {
+    flex: 1;
+    border: 1px solid #d1fae5;
+    background: #f0fdf4;
+    color: #065f46;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 7px 10px;
+  }
+  .mh-quick-panel {
+    margin: 0 10px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
 
   .mh-search-wrap {
     display: flex;
@@ -401,6 +425,7 @@ html, body, #root {
   }
 
   .mh-account-menu {
+    position: absolute;
     right: 0;
     top: 34px;
     width: 200px;
@@ -408,6 +433,8 @@ html, body, #root {
     background: #fff;
     box-shadow: 0 10px 24px rgba(0,0,0,0.15);
     z-index: 3500;
+    max-height: 70vh;
+    overflow-y: auto;
   }
 
   .mh-menu-item {
