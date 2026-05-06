@@ -247,7 +247,7 @@ const AboutPage = () => {
         display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 1000, boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
         border: THEME.glassBorder
       }}>
-        <img src="logo.png" alt="Logo" style={{ height: "50px", filter: "brightness(1.2)" }} />
+        <img src="/logo.png" alt="Logo" style={{ height: "50px", filter: "brightness(1.2)" }} />
         <div className="about-navbar-links" style={{ display: "flex", gap: "30px", alignItems: "center" }}>
           <a href="#about" style={navLink}>About</a>
           <a href="#story" style={navLink}>Our Story</a>
