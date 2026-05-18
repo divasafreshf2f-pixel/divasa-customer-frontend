@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import AccountSidebar from "../components/AccountSidebar";
 import api, { getAssetCandidates, resolveImagePath } from "../services/api";
+import { getOrderDisplayId } from "../utils/orderDisplayId";
 
 const formatMoney = (value = 0) => `Rs ${Number(value || 0).toFixed(0)}`;
 
@@ -131,7 +132,7 @@ export default function BulkOrders() {
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
                       <div>
                         <p style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>
-                          Bulk #{String(order._id || "").slice(-6).toUpperCase()}
+                          Bulk #{getOrderDisplayId({ ...order, bulkCustomerId: { accountType: selectedEvent?.accountType || "event" } }, "E")}
                         </p>
                         <p style={{ fontSize: 13, color: "#94a3b8", margin: "4px 0 0" }}>
                           {new Date(order.createdAt || Date.now()).toLocaleString()}

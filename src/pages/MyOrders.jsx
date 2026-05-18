@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api, { getAssetCandidates, resolveImagePath } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { computeOrderTotals, formatPrice, getReferenceMarketPrice } from "../utils/pricing";
+import { getOrderDisplayId } from "../utils/orderDisplayId";
 import AccountSidebar from "../components/AccountSidebar";
 import Header from "../components/Header";
 
@@ -107,7 +108,7 @@ export default function MyOrders() {
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15 }}>
                       <div>
-                        <p style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>Order #{order._id.slice(-6).toUpperCase()}</p>
+                        <p style={{ fontWeight: 700, fontSize: 16, margin: 0 }}>Order #{getOrderDisplayId(order)}</p>
                         <p style={{ fontSize: 13, color: "#94a3b8", marginTop: 4, margin: 0 }}>{new Date(order.createdAt).toLocaleString()}</p>
                       </div>
                       <div style={{ textAlign: "right" }}>

@@ -9,6 +9,7 @@ import {
   getReferenceMarketSubtotal,
 } from "../utils/pricing";
 import AccountSidebar from "../components/AccountSidebar";
+import { getOrderDisplayId } from "../utils/orderDisplayId";
 
 const DB_MOBILE = `
 @media (max-width: 768px) {
@@ -59,7 +60,7 @@ export default function OrderDetails() {
             <div style={stickyHeader}>
               <button onClick={() => navigate(-1)} style={backCircle}>←</button>
               <div>
-                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#0f172a" }}>Order #{order._id.slice(-6).toUpperCase()}</h2>
+                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#0f172a" }}>Order #{getOrderDisplayId(order)}</h2>
                 <p style={{ margin: 0, fontSize: "13px", color: "#64748b", fontWeight: "500" }}>
                   Placed on {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
