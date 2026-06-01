@@ -4,7 +4,7 @@ import MapSelector from "../components/MapSelector";
 import { useLocation, useNavigate } from "react-router-dom";
 import AccountSidebar from "../components/AccountSidebar";
 import Header from "../components/Header";
-import { REVIEW_MODE_ENABLED } from "../config/reviewMode";
+import { isReviewPhone, REVIEW_MODE_ENABLED } from "../config/reviewMode";
 
 const MOBILE_STYLE = `
 @media (max-width: 768px) {
@@ -31,6 +31,7 @@ export default function SavedAddresses() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem("divasa_user")) || null;
+  const isTestLoginUser = isReviewPhone(user?.phone);
 
   const [newAddress, setNewAddress] = useState({
     flatNo: "", building: "", street: "", area: "", landmark: "", customAddressType: "",
@@ -64,7 +65,7 @@ export default function SavedAddresses() {
     const params = new URLSearchParams(location.search);
     if (params.get("action") !== "add") return;
 
-    if (REVIEW_MODE_ENABLED) {
+    if (REVIEW_MODE_ENABLED || isTestLoginUser) {
       setShowForm(false);
       setIsMapConfirmed(false);
       setSelectedLocation(null);
@@ -86,7 +87,7 @@ export default function SavedAddresses() {
       addressType: "Home",
       buildingType: "Society",
     });
-  }, [location.search]);
+  }, [location.search, isTestLoginUser, navigate]);
 
   const handleSave = async () => {
     if (!newAddress.flatNo) {
@@ -183,8 +184,21 @@ export default function SavedAddresses() {
     return "📍";
   };
 
+
+  // Test login: skip address/map UI
   if (!user) return <div style={{ padding: 40, textAlign: "center" }}>Please Login</div>;
   if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Loading...</div>;
+
+  if (isTestLoginUser) {
+    return (
+      <>
+        <Header />
+        <div style={{ padding: 40, paddingTop: 120, textAlign: "center" }}>
+          Test login: Address and map are not required.
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

@@ -1,7 +1,10 @@
 // Review mode is disabled by default in production use.
 export const REVIEW_MODE_ENABLED = String(import.meta.env.VITE_REVIEW_MODE || "false").toLowerCase() === "true";
-export const REVIEW_PHONE = "9999999999";
+export const REVIEW_PHONE = "9876543210";
 export const REVIEW_OTP = "123456";
+
+export const normalizeReviewPhone = (phone = "") => String(phone).replace(/\D/g, "").slice(-10);
+export const isReviewPhone = (phone = "") => normalizeReviewPhone(phone) === REVIEW_PHONE;
 
 export const REVIEW_DEFAULT_LOCATION = {
   name: "Bidarahalli, Bangalore",

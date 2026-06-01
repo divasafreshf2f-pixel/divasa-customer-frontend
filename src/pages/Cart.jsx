@@ -6,7 +6,7 @@ import CustomerLoginModal from "../components/CustomerLoginModal";
 import MapSelector from "../components/MapSelector";
 import { formatPrice, getReferenceMarketPrice, getReferenceMarketSubtotal } from "../utils/pricing";
 import { loadCashfreeClient } from "../utils/loadCashfree";
-import { REVIEW_DEFAULT_ADDRESS, REVIEW_MODE_ENABLED, REVIEW_PHONE } from "../config/reviewMode";
+import { isReviewPhone, REVIEW_DEFAULT_ADDRESS, REVIEW_MODE_ENABLED, REVIEW_PHONE } from "../config/reviewMode";
 
 
 
@@ -46,6 +46,7 @@ const [selectedAddress, setSelectedAddress] = useState(null);
 
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem("divasa_user")));
+  const isTestLoginUser = isReviewPhone(currentUser?.phone);
 
   const normalizeCategoryKey = (category = "") =>
     String(category).trim().toLowerCase();
@@ -211,6 +212,21 @@ const [selectedAddress, setSelectedAddress] = useState(null);
       return;
     }
 
+    if (isTestLoginUser) {
+      setSelectedAddress({
+        ...REVIEW_DEFAULT_ADDRESS,
+        fullName: currentUser?.name || REVIEW_DEFAULT_ADDRESS.fullName,
+        receiverPhone: currentUser?.phone || REVIEW_DEFAULT_ADDRESS.receiverPhone,
+        phone: currentUser?.phone || REVIEW_DEFAULT_ADDRESS.phone,
+      });
+      setSavedAddresses([REVIEW_DEFAULT_ADDRESS]);
+      setReceiverDetails({
+        name: currentUser?.name || "Customer",
+        phone: currentUser?.phone || REVIEW_PHONE,
+      });
+      return;
+    }
+
     const res = await api.get(`/addresses/${currentUser.phone}`);
     const sorted = [...res.data].sort((a, b) => b.isDefault - a.isDefault);
 
@@ -249,7 +265,7 @@ const [selectedAddress, setSelectedAddress] = useState(null);
     }
   } catch (err) {
     console.error("Failed to fetch addresses", err);
-    if (REVIEW_MODE_ENABLED) {
+    if (REVIEW_MODE_ENABLED || isTestLoginUser) {
       setSelectedAddress(REVIEW_DEFAULT_ADDRESS);
       setSavedAddresses([REVIEW_DEFAULT_ADDRESS]);
       setReceiverDetails({
@@ -264,14 +280,14 @@ const [selectedAddress, setSelectedAddress] = useState(null);
   fetchSettings();
   fetchAddresses();
 
-}, [currentUser?.phone]);
+}, [currentUser?.phone, isTestLoginUser]);
 
  useEffect(() => {
-  if (!REVIEW_MODE_ENABLED) return;
+  if (!REVIEW_MODE_ENABLED && !isTestLoginUser) return;
   if (!selectedAddress) {
     setSelectedAddress(REVIEW_DEFAULT_ADDRESS);
   }
- }, [selectedAddress]);
+ }, [selectedAddress, isTestLoginUser]);
 
  useEffect(() => {
   const syncUser = () => {

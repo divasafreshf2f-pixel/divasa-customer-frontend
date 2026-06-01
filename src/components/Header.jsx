@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 import MapSelector from "./MapSelector";
 import { getCartCount, getCart } from "../utils/cartStorage";
-import { REVIEW_DEFAULT_LOCATION, REVIEW_MODE_ENABLED } from "../config/reviewMode";
+import { isReviewPhone, REVIEW_DEFAULT_LOCATION, REVIEW_MODE_ENABLED } from "../config/reviewMode";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -27,9 +27,10 @@ export default function Header() {
   const WAREHOUSE_LOCATION = { lat: 13.0570, lng: 77.7108 };
   const SERVICE_RADIUS_KM = 15;
   const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+  const isTestLoginUser = isReviewPhone(user?.phone);
 
   const handleLocationClick = () => {
-    if (REVIEW_MODE_ENABLED) return;
+    if (REVIEW_MODE_ENABLED || isTestLoginUser) return;
     if (!user) {
       window.dispatchEvent(new Event("openLoginModal"));
       return;
@@ -95,7 +96,7 @@ useEffect(() => {
 }, []);
 
   useEffect(() => {
-    if (REVIEW_MODE_ENABLED) {
+    if (REVIEW_MODE_ENABLED || isTestLoginUser) {
       localStorage.setItem("divasa_location_lat", String(REVIEW_DEFAULT_LOCATION.lat));
       localStorage.setItem("divasa_location_lng", String(REVIEW_DEFAULT_LOCATION.lng));
       localStorage.setItem("divasa_location_name", REVIEW_DEFAULT_LOCATION.name);
@@ -115,7 +116,7 @@ useEffect(() => {
     setDeliveryTime(Math.round(15 + distance * 2));
     const savedName = localStorage.getItem("divasa_location_name");
     setHeaderLocation(savedName || "Select Location");
-  }, []);
+  }, [isTestLoginUser]);
 
   useEffect(() => {
     if (!search.trim()) { setSuggestions([]); return; }
@@ -193,7 +194,7 @@ useEffect(() => {
         }
       `}</style>
 
-      <div style={{
+      <div className="site-header-shell" style={{
         position: "fixed", top: 0, left: 0, width: "100%",
         backdropFilter: "blur(12px)",
         background: "rgba(255,255,255,0.75)",
@@ -494,7 +495,7 @@ useEffect(() => {
       </div>
 
       {/* LOCATION MODAL */}
-      {showLocationModal && user && !REVIEW_MODE_ENABLED && (
+      {showLocationModal && user && !REVIEW_MODE_ENABLED && !isTestLoginUser && (
         <div style={{
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
           display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999

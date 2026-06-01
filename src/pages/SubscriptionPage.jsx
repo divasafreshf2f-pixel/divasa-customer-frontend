@@ -655,30 +655,32 @@ const PLAN_IMAGES = {
 },
 heroSection: {
   width: "100%",
-  minHeight: isMobile ? "520px" : "590px",
+  minHeight: isMobile ? "620px" : "590px",
 
   backgroundImage:
-    "linear-gradient(to right, rgba(255,255,255,0) 35%, rgba(255,255,255,0.1)), url('/subscription-hero.png')",
+    isMobile
+      ? "linear-gradient(180deg, rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.18) 42%, rgba(255,255,255,0.04) 100%), url('/subscription-hero.png')"
+      : "linear-gradient(to right, rgba(255,255,255,0) 35%, rgba(255,255,255,0.1)), url('/subscription-hero.png')",
 
   backgroundSize: "cover",
-  backgroundPosition: isMobile ? "65% center" : "75% center",
+  backgroundPosition: isMobile ? "64% center" : "75% center",
   backgroundRepeat: "no-repeat",
 
   display: "flex",
-  alignItems: "center",
-  padding: isMobile ? "0 10px" : "0 28px",
+  alignItems: isMobile ? "flex-start" : "center",
+  padding: isMobile ? "24px 16px 20px" : "0 28px",
   boxSizing: "border-box",
 },
 heroContent: {
   width: "100%",
 },
    heroMainTitle: {
-  fontSize: "56px",
+  fontSize: isMobile ? "42px" : "56px",
   fontWeight: 900,
   lineHeight: 1.05,
   color: "#0a0a0a",
-  margin: "0 0 20px 0",
-  letterSpacing: "-2px",
+  margin: isMobile ? "0 0 12px 0" : "0 0 20px 0",
+  letterSpacing: isMobile ? "-1px" : "-2px",
 },
 
     heroSubtitle: {
@@ -768,12 +770,13 @@ heroContent: {
     },
   stepIndicator: {
   display: "flex",
-  flexDirection: isMobile ? "column" : "row",
+  flexDirection: "row",
   alignItems: "center",
   justifyContent: "center",
-  gap: isMobile ? "16px" : "0px",
-  margin: "40px 0",
-  padding: "0",
+  gap: isMobile ? "8px" : "0px",
+  margin: isMobile ? "28px 0 24px" : "40px 0",
+  padding: isMobile ? "0 4px 8px" : "0",
+  overflowX: isMobile ? "auto" : "visible",
   background: "transparent",
   border: "none",
   boxShadow: "none",
@@ -783,9 +786,9 @@ heroContent: {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: "10px",
+  gap: isMobile ? "7px" : "10px",
   position: "relative",
-  flex: 1,
+  flex: isMobile ? "0 0 108px" : 1,
   cursor: "default",
 },
 
@@ -793,8 +796,8 @@ heroContent: {
       opacity: 1,
     },
    stepNumber: {
-  width: "52px",
-  height: "52px",
+  width: isMobile ? "48px" : "52px",
+  height: isMobile ? "48px" : "52px",
   borderRadius: "50%",
   background: "#f3f4f6",
   color: "#9ca3af",
@@ -802,7 +805,7 @@ heroContent: {
   alignItems: "center",
   justifyContent: "center",
   fontWeight: 800,
-  fontSize: "18px",
+  fontSize: isMobile ? "16px" : "18px",
   border: "2px solid #e5e7eb",
   transition: "all 0.4s ease",
 },
@@ -822,6 +825,7 @@ stepLabel: {
   textTransform: "uppercase",
   letterSpacing: "0.5px",
   textAlign: "center",
+  whiteSpace: isMobile ? "nowrap" : "normal",
 },
 
 stepLabelActive: {
@@ -834,7 +838,7 @@ stepDivider: {
   height: "2px",
   background: "#e5e7eb",
   margin: "0 8px",
-  marginBottom: "28px",
+  marginBottom: isMobile ? "42px" : "28px",
   borderRadius: "2px",
   transition: "background 0.4s ease",
 },
@@ -1169,9 +1173,10 @@ specValue: {
       margin: "12px 0",
     },
 
- heroWrapper: {
+heroWrapper: {
   width: "100%",
   maxWidth: "1200px",
+  margin: isMobile ? "0 auto" : undefined,
 },
 heroLeft: {
   flex: 1,
@@ -1180,13 +1185,13 @@ heroLeft: {
 
 heroBadge: {
   display: "inline-block",
-  padding: "8px 18px",
+  padding: isMobile ? "6px 12px" : "8px 18px",
   borderRadius: "30px",
   background: "linear-gradient(135deg, #dcfce7, #bbf7d0)",
   color: "#15803d",
   fontWeight: 700,
-  fontSize: "13px",
-  marginBottom: "20px",
+  fontSize: isMobile ? "11px" : "13px",
+  marginBottom: isMobile ? "12px" : "20px",
   border: "1px solid #86efac",
   letterSpacing: "1px",
   textTransform: "uppercase",
@@ -1204,22 +1209,22 @@ heroHighlight: {
 
 
 heroTextWrapper: {
-  marginTop: "20px",
-  marginBottom: "45px",
-  maxWidth: "600px",
+  marginTop: isMobile ? "12px" : "20px",
+  marginBottom: isMobile ? "24px" : "45px",
+  maxWidth: isMobile ? "360px" : "600px",
 },
 
 heroLine1: {
-  fontSize: isMobile ? "16px" : "18px",
-  color: "#6b7280",
-  marginBottom: "14px",
-  fontWeight: 500,
+  fontSize: isMobile ? "15px" : "18px",
+  color: isMobile ? "#344054" : "#6b7280",
+  marginBottom: isMobile ? "10px" : "14px",
+  fontWeight: isMobile ? 700 : 500,
   letterSpacing: "0.3px",
 },
 
 
 heroLine2: {
-  fontSize: isMobile ? "20px" : "24px",
+  fontSize: isMobile ? "18px" : "24px",
   color: "#111827",
   fontWeight: 700,
   lineHeight: 1.5,
@@ -1235,16 +1240,16 @@ heroStrong: {
 
 heroFeatures: {
   display: "flex",
-  gap: "12px",
+  gap: isMobile ? "9px" : "12px",
   flexWrap: "wrap",
-  marginBottom: "30px",
+  marginBottom: isMobile ? "18px" : "30px",
 },
 
 featurePill: {
   background: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
-  padding: "10px 18px",
+  padding: isMobile ? "9px 13px" : "10px 18px",
   borderRadius: "30px",
-  fontSize: "13px",
+  fontSize: isMobile ? "12px" : "13px",
   fontWeight: 700,
   color: "#15803d",
   border: "1.5px solid #86efac",
@@ -1253,30 +1258,30 @@ featurePill: {
 
 heroButtons: {
   display: "flex",
-  gap: "16px",
+  gap: isMobile ? "10px" : "16px",
   flexDirection: isMobile ? "column" : "row",
 },
 
 heroPrimaryBtn: {
-  padding: "15px 30px",
+  padding: isMobile ? "14px 18px" : "15px 30px",
   background: "linear-gradient(135deg, #16a34a, #22c55e)",
   color: "#fff",
   border: "none",
   borderRadius: "30px",
   fontWeight: 800,
-  fontSize: "15px",
+  fontSize: isMobile ? "14px" : "15px",
   cursor: "pointer",
   boxShadow: "0 8px 24px rgba(34,197,94,0.4)",
   letterSpacing: "0.3px",
 },
 
 heroSecondaryBtn: {
-  padding: "15px 30px",
+  padding: isMobile ? "14px 18px" : "15px 30px",
   background: "#ffffff",
   border: "2px solid #d1d5db",
   borderRadius: "30px",
   fontWeight: 700,
-  fontSize: "15px",
+  fontSize: isMobile ? "14px" : "15px",
   cursor: "pointer",
   color: "#374151",
   letterSpacing: "0.3px",
@@ -1457,9 +1462,9 @@ heroImage: {
   };
 
  return (
-    <div style={styles.pageContainer}>
+    <div className="subscription-page-root" style={styles.pageContainer}>
       <Header />
-      <div style={{ paddingTop: "80px" }}></div>
+      <div className="subscription-header-spacer" style={{ paddingTop: "80px" }}></div>
       <style>{`
         @keyframes slideIn {
           from {

@@ -777,7 +777,53 @@
 
 @media (max-width: 768px) {
   .bulk-wrap {
-    padding: 94px 10px 120px;
+    padding: 10px 10px 120px;
+  }
+
+  .bulk-hero {
+    border-radius: 24px;
+    padding: 22px;
+    gap: 18px;
+    margin-bottom: 20px;
+  }
+
+  .bulk-hero h1 {
+    font-size: 28px;
+    line-height: 1.12;
+    margin-bottom: 12px;
+  }
+
+  .bulk-hero p {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .bulk-hero-pill-row {
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .bulk-hero-pill-row span {
+    font-size: 12px;
+    padding: 7px 11px;
+  }
+
+  .bulk-hero-stats {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .bulk-hero-stats > div {
+    min-height: 76px;
+    padding: 14px 16px;
+  }
+
+  .bulk-highlight-carousel {
+    margin-top: 0;
+  }
+
+  .bulk-highlight-card {
+    min-height: 210px;
   }
 
   .bulk-card,

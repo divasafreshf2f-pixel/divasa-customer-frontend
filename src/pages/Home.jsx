@@ -14,7 +14,7 @@ import { formatPrice, getReferenceMarketPrice } from "../utils/pricing";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import MapSelector from "../components/MapSelector";
 import CustomerLoginModal from "../components/CustomerLoginModal";
-import { REVIEW_DEFAULT_LOCATION, REVIEW_MODE_ENABLED } from "../config/reviewMode";
+import { isReviewPhone, REVIEW_DEFAULT_LOCATION, REVIEW_MODE_ENABLED } from "../config/reviewMode";
 
 export default function Home() {
 
@@ -38,11 +38,15 @@ export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [showAddressPicker, setShowAddressPicker] = useState(false);
+  const [headerLocation, setHeaderLocation] = useState(null);
+  const [deliveryTime, setDeliveryTime] = useState(null);
+  const [liveEta, setLiveEta] = useState(null);
 
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("divasa_user")) || null
   );
   const navigate = useNavigate();
+  const isTestLoginUser = isReviewPhone(user?.phone);
 
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("divasa_user"));
@@ -67,6 +71,18 @@ export default function Home() {
       setShowAddressPicker(false);
       setShowMapModal(false);
       setShowLoginModal(REVIEW_MODE_ENABLED ? false : true);
+      return;
+    }
+
+    if (isTestLoginUser) {
+      localStorage.setItem("divasa_location_lat", String(REVIEW_DEFAULT_LOCATION.lat));
+      localStorage.setItem("divasa_location_lng", String(REVIEW_DEFAULT_LOCATION.lng));
+      localStorage.setItem("divasa_location_name", REVIEW_DEFAULT_LOCATION.name);
+      setHeaderLocation(REVIEW_DEFAULT_LOCATION.name);
+      setDeliveryAddress(REVIEW_DEFAULT_LOCATION.name);
+      setShowAddressPicker(false);
+      setShowMapModal(false);
+      setShowLoginModal(false);
       return;
     }
 
@@ -106,16 +122,18 @@ export default function Home() {
     };
 
     fetchAddresses();
-  }, [user, navigate]);
+  }, [user, isTestLoginUser, navigate]);
 
   useEffect(() => {
-    if (!REVIEW_MODE_ENABLED) return;
+    if (!REVIEW_MODE_ENABLED && !isTestLoginUser) return;
     localStorage.setItem("divasa_location_lat", String(REVIEW_DEFAULT_LOCATION.lat));
     localStorage.setItem("divasa_location_lng", String(REVIEW_DEFAULT_LOCATION.lng));
     localStorage.setItem("divasa_location_name", REVIEW_DEFAULT_LOCATION.name);
+    setHeaderLocation(REVIEW_DEFAULT_LOCATION.name);
+    setDeliveryAddress(REVIEW_DEFAULT_LOCATION.name);
     setShowMapModal(false);
     setShowAddressPicker(false);
-  }, []);
+  }, [isTestLoginUser]);
 
   const [favs, setFavs] = useState([]);
   const [message, setMessage] = useState("");
@@ -138,10 +156,6 @@ export default function Home() {
   const cartTotal = cart.reduce((total, item) => {
     return total + item.price * item.quantity;
   }, 0);
-
-  const [headerLocation, setHeaderLocation] = useState(null);
-  const [deliveryTime, setDeliveryTime] = useState(null);
-  const [liveEta, setLiveEta] = useState(null);
 
   useEffect(() => {
     const style = document.createElement("style");
