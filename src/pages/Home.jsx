@@ -1,7 +1,7 @@
 import "./Home.css";
 
 import { useEffect, useState } from "react";
-import api, { getAssetUrl } from "../services/api";
+import api, { resolveImagePath } from "../services/api";
 import {
   addToCart,
   getCartCount,
@@ -9,6 +9,7 @@ import {
   updateCartQuantity
 } from "../utils/cartStorage";
 import Header from "../components/Header";
+import ImageLoader from "../components/ImageLoader";
 import { formatPrice, getReferenceMarketPrice } from "../utils/pricing";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -140,7 +141,12 @@ export default function Home() {
 
   useEffect(() => {
     if (user?.phone) {
-      api.get(`/products/favorites/${user.phone}`).then(res => setFavs(res.data.map(f => f._id)));
+      api.get(`/products/favorites/${user.phone}`)
+        .then(res => setFavs(res.data.map(f => f._id)))
+        .catch(err => {
+          console.warn("Failed to load favorites:", err?.response?.status);
+          setFavs([]);
+        });
     }
   }, [user]);
 
@@ -525,35 +531,7 @@ export default function Home() {
   }
 
   function getProductImagePath(product = {}) {
-    return (
-      product.image ||
-      product.imageUrl ||
-      product.productImage ||
-      product.productImageUrl ||
-      ""
-    );
-  }
-
-  function getProductImageSources(product = {}) {
-    const raw = getProductImagePath(product);
-    if (!raw) return [];
-    if (/^https?:\/\//i.test(raw)) return [raw];
-
-    const normalizedPath = raw.startsWith("/") ? raw : `/${raw}`;
-    const primary = getAssetUrl(normalizedPath);
-    const sources = [primary];
-
-    if (
-      typeof window !== "undefined" &&
-      ["localhost", "127.0.0.1"].includes(window.location.hostname)
-    ) {
-      const localDev = `${window.location.protocol}//${window.location.hostname}:5000${normalizedPath}`;
-      if (!sources.includes(localDev)) {
-        sources.push(localDev);
-      }
-    }
-
-    return sources;
+    return resolveImagePath(product);
   }
 
   return (
@@ -876,8 +854,7 @@ export default function Home() {
             if (!availableVariants || availableVariants.length === 0) return null;
             const totalStock = Number(product?.stockQuantity || 0);
             const isOutOfStock = totalStock <= 0;
-            const productImageSources = getProductImageSources(product);
-            const productImage = productImageSources[0] || "";
+            const productImage = getProductImagePath(product);
             const selectedVariantId = selectedVariantIds[product._id];
             const selectedVariant =
               availableVariants.find((variant) => String(variant._id) === String(selectedVariantId)) ||
@@ -934,31 +911,22 @@ export default function Home() {
 </div>
                 )}
 
-                {productImage && (
-                  <div className="product-img-wrap" style={{ overflow: "hidden", borderRadius: 12 }}>
-                    <img
-                      src={productImage}
-                      alt={product.name}
-                      data-fallback-index="0"
-                      onError={(e) => {
-                        const currentIndex = Number(e.currentTarget.dataset.fallbackIndex || "0");
-                        const nextIndex = currentIndex + 1;
-                        const nextSrc = productImageSources[nextIndex];
-                        if (nextSrc) {
-                          e.currentTarget.dataset.fallbackIndex = String(nextIndex);
-                          e.currentTarget.src = nextSrc;
-                          return;
-                        }
-                        e.currentTarget.onerror = null;
-                      }}
-                      style={{
-                        width: "100%", height: 130, objectFit: "contain",
-                        borderRadius: 12, marginBottom: 8,
-                        background: "#f5f8f4", padding: 8, transition: "0.3s ease"
-                      }}
-                    />
-                  </div>
-                )}
+                <div className="product-img-wrap" style={{ overflow: "hidden", borderRadius: 12 }}>
+                  <ImageLoader
+                    src={productImage}
+                    alt={product.name}
+                    style={{
+                      width: "100%",
+                      height: 130,
+                      objectFit: "contain",
+                      borderRadius: 12,
+                      marginBottom: 8,
+                      background: "#f5f8f4",
+                      padding: 8,
+                      transition: "0.3s ease",
+                    }}
+                  />
+                </div>
 
                 <button
                   className="product-fav-btn"

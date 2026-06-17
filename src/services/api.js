@@ -140,76 +140,164 @@ export const getApiBaseUrl = () => api.defaults.baseURL || PRIMARY_CLOUD_API_URL
 
 export const getApiHost = () => getApiBaseUrl().replace(/\/api\/?$/, "");
 
+const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".avif", ".gif", ".jfif"];
+
+const safeDecode = (value = "") => {
+  try {
+    return decodeURI(String(value || ""));
+  } catch {
+    return String(value || "");
+  }
+};
+
+const normalizeImagePath = (value = "") => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (/^(blob:|data:)/i.test(raw)) return raw;
+  if (/^https?:\/\//i.test(raw)) return encodeURI(raw);
+
+  return safeDecode(raw)
+    .replace(/\\/g, "/")
+    .replace(/^\.\//, "")
+    .replace(/\/{2,}/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/^uploads\/uploads\//i, "uploads/")
+    .replace(/^uploads\/products\/products\//i, "uploads/products/")
+    .replace(/^uploads\/categories\/categories\//i, "uploads/categories/")
+    .replace(/^uploads\/banners\/banners\//i, "uploads/banners/");
+};
+
+const addVariantFamily = (candidates, candidatePath) => {
+  if (!candidatePath) return;
+
+  const trimmed = String(candidatePath)
+    .trim()
+    .replace(/\\/g, "/")
+    .replace(/\/{2,}/g, "/")
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
+  if (!trimmed) return;
+
+  const segments = trimmed.split("/").filter(Boolean);
+  const fileName = segments[segments.length - 1] || "";
+  const folder = segments.length > 1 ? segments.slice(0, -1).join("/") : "";
+  const extMatch = fileName.match(/\.[^.]+$/);
+
+  const push = (candidate) => {
+    const normalized = String(candidate || "").trim().replace(/\\/g, "/").replace(/\/{2,}/g, "/");
+    if (!normalized) return;
+    candidates.add(normalized.startsWith("/") ? normalized : `/${normalized}`);
+  };
+
+  push(trimmed);
+
+  if (extMatch) {
+    const baseName = fileName.slice(0, -extMatch[0].length);
+    IMAGE_EXTENSIONS.forEach((altExt) => {
+      if (altExt === extMatch[0].toLowerCase()) return;
+      push(folder ? `${folder}/${baseName}${altExt}` : `${baseName}${altExt}`);
+    });
+    return;
+  }
+
+  IMAGE_EXTENSIONS.forEach((altExt) => {
+    push(folder ? `${folder}/${fileName}${altExt}` : `${fileName}${altExt}`);
+  });
+};
+
 export const resolveImagePath = (value = "") => {
   if (!value) return "";
-  if (typeof value === "string") return value;
+  if (typeof value === "string") return normalizeImagePath(value);
   if (typeof value === "object") {
-    return (
+    return normalizeImagePath(
       value.image ||
       value.imageUrl ||
       value.productImage ||
       value.productImageUrl ||
+      value.thumbnail ||
+      value.url ||
       ""
     );
   }
   return "";
 };
 
+const buildPathVariants = (cleanPath = "") => {
+  const pathValue = normalizeImagePath(cleanPath);
+  if (!pathValue) return [];
+
+  const noQuery = pathValue.replace(/[?#].*$/, "");
+  const segments = noQuery.split("/").filter(Boolean);
+  const fileName = segments[segments.length - 1] || "";
+  const baseName = fileName.replace(/\.[^.]+$/, "");
+  const isFileOnly = segments.length === 1;
+  const candidates = new Set();
+
+  addVariantFamily(candidates, noQuery);
+
+  if (isFileOnly) {
+    addVariantFamily(candidates, `uploads/products/${noQuery}`);
+    addVariantFamily(candidates, `uploads/categories/${noQuery}`);
+    addVariantFamily(candidates, `uploads/banners/${noQuery}`);
+    addVariantFamily(candidates, `uploads/${noQuery}`);
+  }
+
+  if (noQuery.startsWith("products/")) {
+    addVariantFamily(candidates, `uploads/${noQuery}`);
+    addVariantFamily(candidates, `uploads/products/${fileName}`);
+  }
+  if (noQuery.startsWith("categories/")) {
+    addVariantFamily(candidates, `uploads/categories/${fileName}`);
+  }
+  if (noQuery.startsWith("banners/")) {
+    addVariantFamily(candidates, `uploads/banners/${fileName}`);
+  }
+  if (noQuery.startsWith("uploads/") && !noQuery.startsWith("uploads/products/") && !noQuery.startsWith("uploads/categories/") && !noQuery.startsWith("uploads/banners/")) {
+    addVariantFamily(candidates, noQuery);
+  }
+  if (noQuery.startsWith("uploads/products/")) {
+    addVariantFamily(candidates, noQuery);
+  }
+
+  const timestampKey = encodeURIComponent(fileName || baseName || noQuery);
+  return [...candidates].map((candidate) => {
+    const valueWithQuery = candidate.startsWith("/") ? candidate : `/${candidate}`;
+    return encodeURI(`${valueWithQuery}${valueWithQuery.includes("?") ? "&" : "?"}v=${timestampKey}`);
+  });
+};
+
 export const getAssetCandidates = (value = "") => {
   const path = resolveImagePath(value);
   if (!path) return [];
-  if (/^(https?:\/\/|blob:|data:)/i.test(path)) return [path];
+  if (/^(https?:\/\/|blob:|data:)/i.test(path)) return [encodeURI(path)];
 
-  const cleanPath = String(path).trim();
-  const looksLikeBareFilename =
-    !cleanPath.startsWith("/") &&
-    !cleanPath.includes("/") &&
-    /\.(png|jpe?g|webp|gif|avif|bmp|svg)$/i.test(cleanPath);
-
-  const preferredPath = looksLikeBareFilename
-    ? `/uploads/products/${cleanPath}`
-    : (cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`);
-
-  const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
+  const candidatePaths = buildPathVariants(path);
   const candidates = [];
-
   const pushUnique = (url) => {
     if (url && !candidates.includes(url)) candidates.push(url);
   };
 
-  const apiHostUrl = `${getApiHost()}${preferredPath}`;
-  const apiHostRawUrl = `${getApiHost()}${normalizedPath}`;
-  const sameOriginPreferredUrl =
-    typeof window !== "undefined" ? `${window.location.origin}${preferredPath}` : "";
-  const sameOriginRawUrl =
-    typeof window !== "undefined" ? `${window.location.origin}${normalizedPath}` : "";
-
+  const apiHost = getApiHost();
   const isLocalBrowser =
     typeof window !== "undefined" &&
     ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  const localHost = typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.hostname}:5000`
+    : "";
+  const sameOrigin = typeof window !== "undefined" ? window.location.origin : "";
 
-  // In local dev, prefer localhost backend first because Home already works with this path.
-  if (isLocalBrowser) {
-    const localUrl = `${window.location.protocol}//${window.location.hostname}:5000${preferredPath}`;
-    pushUnique(localUrl);
-    if (normalizedPath !== preferredPath) {
-      const localRawUrl = `${window.location.protocol}//${window.location.hostname}:5000${normalizedPath}`;
-      pushUnique(localRawUrl);
+  candidatePaths.forEach((candidatePath) => {
+    const cleanedPath = candidatePath.replace(/^\/+/, "");
+    if (isLocalBrowser && localHost) {
+      pushUnique(`${localHost}/${cleanedPath}`);
+      pushUnique(`${sameOrigin}/${cleanedPath}`);
     }
-    pushUnique(apiHostUrl);
-    if (normalizedPath !== preferredPath) pushUnique(apiHostRawUrl);
-    return candidates;
-  }
+    pushUnique(`${apiHost}/${cleanedPath}`);
+  });
 
-  pushUnique(apiHostUrl);
-  if (normalizedPath !== preferredPath) pushUnique(apiHostRawUrl);
-  pushUnique(sameOriginPreferredUrl);
-  if (normalizedPath !== preferredPath) pushUnique(sameOriginRawUrl);
-  return candidates;
+  return candidates.map((candidate) => encodeURI(candidate.replace(/\/{2,}/g, "/").replace(":/", "://")));
 };
 
-export const getAssetUrl = (value = "") => {
-  return getAssetCandidates(value)[0] || "";
-};
+export const getAssetUrl = (value = "") => getAssetCandidates(value)[0] || "";
 
 export default api;
